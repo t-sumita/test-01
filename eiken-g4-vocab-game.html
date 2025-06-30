@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eiken Grade 4 Vocab Game for Yuri ✨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Cute font: Mochiy Pop P One -->
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles for the body, ensuring full viewport height and centering content */
+        body {
+            font-family: 'Mochiy Pop P One', sans-serif; /* Set a cute font */
+            background-color: #FFC0CB; /* Pink background for a cute theme */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Minimum height of 100% of the viewport height */
+            margin: 0;
+            padding: 20px; /* Padding around the container for smaller screens */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+        /* Styling for the main game container */
+        .game-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 20px; /* Rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+            text-align: center;
+            max-width: 500px; /* Maximum width for larger screens */
+            width: 100%; /* Full width on smaller screens */
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Space between elements */
+        }
+        /* Common button styles */
+        .btn {
+            @apply bg-blue-500 text-white py-3 px-6 rounded-lg text-lg font-semibold hover:bg-blue-600 transition-colors duration-200 cursor-pointer w-full;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for buttons */
+        }
+        /* Option button specific styles */
+        .option-btn {
+            @apply bg-purple-500 text-white py-3 px-5 rounded-lg text-lg font-medium hover:bg-purple-600 transition-colors duration-200 cursor-pointer w-full;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+        /* Visual feedback for button press */
+        .option-btn:active {
+            transform: translateY(1px); /* Slight press effect */
+        }
+        /* Style for the selected time button */
+        .selected-time {
+            @apply bg-green-500 !important; /* Emphasize the currently selected time button */
+        }
+        /* Text styles for score and results */
+        .score-display p, .result-item {
+            @apply text-gray-700 text-lg;
+        }
+        /* Title style for game results */
+        .result-title {
+            @apply text-2xl font-bold mb-4 text-gray-800;
+        }
+        /* List style for incorrect words */
+        .incorrect-words-list {
+            list-style-type: disc; /* Bullet points */
+            padding-left: 20px; /* Indent for list items */
+            text-align: left;
+            margin-top: 10px;
+        }
+        /* Specific font adjustments for consistency */
+        #current-word, .result-title, .score-display, .result-item {
+            font-family: 'Mochiy Pop P One', sans-serif;
+        }
+
+        /* Styles for correct/incorrect answer feedback */
+        .option-btn.correct {
+            background-color: #4CAF50; /* Green for correct */
+        }
+        .option-btn.incorrect {
+            background-color: #F44336; /* Red for incorrect */
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Eiken Grade 4 Vocab Game for Yuri ✨</h1>
+
+        <!-- Score and Timer Display (always visible during gameplay) -->
+        <div class="flex justify-between items-center bg-gray-100 p-4 rounded-lg shadow-sm">
+            <div class="text-xl font-semibold text-gray-700">Time: <span id="time-left">0</span>s</div>
+            <div class="text-xl font-semibold text-gray-700">Score: <span id="score">0</span></div>
+        </div>
+
+        <!-- Game Setup Screen -->
+        <div id="game-setup" class="flex flex-col gap-4">
+            <h2 class="text-2xl font-semibold text-gray-700 mt-4">Select Time Limit:</h2>
+            <div class="flex flex-wrap justify-center gap-4">
+                <button class="time-select-btn btn" data-time="30">30 Seconds</button>
+                <button class="time-select-btn btn" data-time="60">1 Minute</button>
+            </div>
+            <p class="text-md text-gray-600">Total vocabulary words: <span id="total-vocab-count"></span></p>
+            <button id="start-game-btn" class="btn mt-6">Start Game</button>
+            <div class="score-display text-gray-600 text-lg">
+                <p>High Score: <span id="high-score">0</span></p>
+                <p>Last Score: <span id="last-score">0</span></p>
+            </div>
+        </div>
+
+        <!-- Game Play Screen -->
+        <div id="game-play" class="hidden">
+            <div class="mb-6">
+                <p class="text-4xl font-bold text-gray-900 mb-4" id="current-word">Word</p>
+            </div>
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Options will be dynamically loaded here -->
+            </div>
+        </div>
+
+        <!-- Game Result Screen -->
+        <div id="game-results" class="hidden text-center">
+            <h2 class="result-title">Game Over!</h2>
+            <!-- Cute result image placeholder updated with the new URL -->
+            <img id="result-image" src="https://kai-you.net/images/a/2023/01/f137df8e1f987837cf55187e609bc9ac.jpg" alt="Result Illustration" class="mx-auto my-4 rounded-lg shadow-md max-w-full h-auto">
+            <p class="result-item">Final Score: <span id="final-score" class="font-bold">0</span></p>
+            <p class="result-item">Correct Answers: <span id="correct-count" class="font-bold">0</span></p>
+            <p class="result-item">Incorrect Answers: <span id="incorrect-count" class="font-bold">0</span></p>
+            <p class="result-item">High Score: <span id="results-high-score" class="font-bold">0</span></p>
+            <p class="result-item">Last Score: <span id="results-last-score" class="font-bold">0</span></p>
+
+            <div id="incorrect-words-section" class="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                <p class="font-semibold text-red-700">Words you missed:</p>
+                <ul id="incorrect-words-list" class="incorrect-words-list text-red-600">
+                    <!-- Incorrect words will be listed here -->
+                </ul>
+            </div>
+            <button id="play-again-btn" class="btn mt-6">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Data: 英検4級の単語と熟語のリスト ---
+        const vocabulary = [
+            { word: "apple", meaning: "りんご" }, { word: "book", meaning: "本" },
+            { word: "dog", meaning: "犬" }, { word: "cat", meaning: "猫" },
+            { word: "house", meaning: "家" }, { word: "car", meaning: "車" },
+            { word: "school", meaning: "学校" }, { word: "friend", meaning: "友達" },
+            { word: "eat", meaning: "食べる" }, { word: "drink", meaning: "飲む" },
+            { word: "run", meaning: "走る" }, { word: "sleep", meaning: "眠る" },
+            { word: "play", meaning: "遊ぶ" }, { word: "happy", meaning: "幸せな" },
+            { word: "sad", meaning: "悲しい" }, { word: "big", meaning: "大きい" },
+            { word: "small", meaning: "小さい" }, { word: "water", meaning: "水" },
+            { word: "sky", meaning: "空" }, { word: "flower", meaning: "花" },
+            { word: "chair", meaning: "椅子" }, { word: "table", meaning: "テーブル" },
+            { word: "pencil", meaning: "鉛筆" }, { word: "bag", meaning: "カバン" },
+            { word: "door", meaning: "ドア" }, { word: "window", meaning: "窓" },
+            { word: "morning", meaning: "朝" }, { word: "night", meaning: "夜" },
+            { word: "sun", meaning: "太陽" }, { word: "moon", meaning: "月" },
+            { word: "star", meaning: "星" }, { word: "tree", meaning: "木" },
+            { word: "grass", meaning: "草" }, { word: "river", meaning: "川" },
+            { word: "mountain", meaning: "山" }, { word: "bird", meaning: "鳥" },
+            { word: "fish", meaning: "魚" }, { word: "swim", meaning: "泳ぐ" },
+            { word: "sing", meaning: "歌う" }, { word: "dance", meaning: "踊る" },
+            { word: "read", meaning: "読む" }, { word: "write", meaning: "書く" },
+            { word: "talk", meaning: "話す" }, { word: "listen", meaning: "聞く" },
+            { word: "think", meaning: "考える" }, { word: "find", meaning: "見つける" },
+            { word: "lose", meaning: "失う" }, { word: "open", meaning: "開ける" },
+            { word: "close", meaning: "閉める" }, { word: "start", meaning: "始める" },
+            { word: "end", meaning: "終わる" }, { word: "wait", meaning: "待つ" },
+            { word: "help", meaning: "助ける" }, { word: "thank", meaning: "感謝する" },
+            { word: "sorry", meaning: "ごめんなさい" }, { word: "please", meaning: "どうぞ" },
+            { word: "hello", meaning: "こんにちは" }, { word: "goodbye", meaning: "さようなら" },
+            { word: "yes", meaning: "はい" }, { word: "no", meaning: "いいえ" },
+            { word: "today", meaning: "今日" }, { word: "tomorrow", meaning: "明日" },
+            { word: "yesterday", meaning: "昨日" }, { word: "morning", meaning: "朝" },
+            { word: "afternoon", meaning: "午後" }, { word: "evening", meaning: "夕方" },
+            { word: "night", meaning: "夜" }, { word: "day", meaning: "日" },
+            { word: "week", meaning: "週" }, { word: "month", meaning: "月" },
+            { word: "year", meaning: "年" }, { word: "time", meaning: "時間" },
+            { word: "minute", meaning: "分" }, { word: "hour", meaning: "時間" },
+            { word: "second", meaning: "秒" }, { word: "money", meaning: "お金" },
+            { word: "food", meaning: "食べ物" }, { word: "clothes", meaning: "服" },
+            { word: "shop", meaning: "店" }, { word: "street", meaning: "通り" },
+            { word: "city", meaning: "都市" }, { word: "country", meaning: "国" },
+            { word: "world", meaning: "世界" }, { word: "north", meaning: "北" },
+            { word: "south", meaning: "南" }, { word: "east", meaning: "東" },
+            { word: "west", meaning: "西" }, { word: "up", meaning: "上" },
+            { word: "down", meaning: "下" }, { word: "left", meaning: "左" },
+            { word: "right", meaning: "右" }, { word: "inside", meaning: "中に" },
+            { word: "outside", meaning: "外に" }, { word: "front", meaning: "前" },
+            { word: "back", meaning: "後ろ" }, { word: "near", meaning: "近い" },
+            { word: "far", meaning: "遠い" }, { word: "good", meaning: "良い" },
+            { word: "bad", meaning: "悪い" }, { word: "new", meaning: "新しい" },
+            { word: "old", meaning: "古い" }, { word: "young", meaning: "若い" },
+            { word: "hot", meaning: "暑い" }, { word: "cold", meaning: "寒い" },
+            { word: "warm", meaning: "暖かい" }, { word: "cool", meaning: "涼しい" },
+            { word: "easy", meaning: "簡単な" }, { word: "difficult", meaning: "難しい" },
+            { word: "fast", meaning: "速い" }, { word: "slow", meaning: "遅い" },
+            { word: "loud", meaning: "うるさい" }, { word: "quiet", meaning: "静かな" },
+            { word: "dark", meaning: "暗い" }, { word: "bright", meaning: "明るい" },
+            { word: "clean", meaning: "きれいな" }, { word: "dirty", meaning: "汚い" },
+            { word: "full", meaning: "満杯の" }, { word: "empty", meaning: "空の" },
+            { word: "hungry", meaning: "お腹が空いた" }, { word: "thirsty", meaning: "喉が渇いた" },
+            { word: "tired", meaning: "疲れた" }, { word: "sick", meaning: "病気の" },
+            { word: "strong", meaning: "強い" }, { word: "weak", meaning: "弱い" },
+            { word: "love", meaning: "愛" }, { word: "hate", meaning: "嫌い" },
+            { word: "like", meaning: "好き" }, { word: "dislike", meaning: "嫌い" },
+            { word: "want", meaning: "欲しい" }, { word: "need", meaning: "必要とする" },
+            { word: "have", meaning: "持っている" }, { word: "give", meaning: "与える" },
+            { word: "take", meaning: "取る" }, { word: "buy", meaning: "買う" },
+            { word: "sell", meaning: "売る" }, { word: "make", meaning: "作る" },
+            { word: "do", meaning: "する" }, { word: "go", meaning: "行く" },
+            { word: "come", meaning: "来る" }, { word: "see", meaning: "見る" },
+            { word: "hear", meaning: "聞く" }, { word: "smell", meaning: "匂いを嗅ぐ" },
+            { word: "taste", meaning: "味見する" }, { word: "feel", meaning: "感じる" },
+            { word: "touch", meaning: "触る" }, { word: "look", meaning: "見る" },
+            { word: "watch", meaning: "見る" }, { word: "show", meaning: "見せる" },
+            { word: "tell", meaning: "伝える" }, { word: "ask", meaning: "尋ねる" },
+            { word: "answer", meaning: "答える" }, { word: "learn", meaning: "学ぶ" },
+            { word: "teach", meaning: "教える" }, { word: "study", meaning: "勉強する" },
+            { word: "work", meaning: "働く" }, { word: "rest", meaning: "休む" },
+            { word: "travel", meaning: "旅行する" }, { word: "visit", meaning: "訪れる" },
+            { word: "live", meaning: "住む" }, { word: "die", meaning: "死ぬ" },
+            { word: "born", meaning: "生まれる" },
+            // 英検4級 熟語の追加
+            { word: "get up", meaning: "起きる" }, { word: "look at", meaning: "～を見る" },
+            { word: "listen to", meaning: "～を聞く" }, { word: "put on", meaning: "～を身につける" },
+            { word: "take off", meaning: "～を脱ぐ" }, { word: "turn on", meaning: "（電気などを）つける" },
+            { word: "turn off", meaning: "（電気などを）消す" }, { word: "look for", meaning: "～を探す" },
+            { word: "thank you for", meaning: "～をありがとう" }, { word: "a lot of", meaning: "たくさんの" },
+            { word: "in front of", meaning: "～の前に" }, { word: "next to", meaning: "～の隣に" },
+            { word: "at home", meaning: "家で" }, { word: "by bike", meaning: "自転車で" },
+            { word: "every day", meaning: "毎日" }, { word: "for example", meaning: "例えば" },
+            { word: "have to", meaning: "～しなければならない" }, { word: "how many", meaning: "いくつ" },
+            { word: "how much", meaning: "いくら" }, { word: "of course", meaning: "もちろん" },
+            { word: "right now", meaning: "今すぐ" }, { word: "be interested in", meaning: "～に興味がある" },
+            { word: "enjoy ~ing", meaning: "～することを楽しむ" }, { word: "go to bed", meaning: "寝る" },
+            { word: "have a good time", meaning: "楽しい時間を過ごす" }, { word: "take a picture", meaning: "写真を撮る" },
+            { word: "take a bus", meaning: "バスに乗る" }, { word: "at school", meaning: "学校で" },
+            { word: "on Sunday", meaning: "日曜日に" }, { word: "next year", meaning: "来年" },
+            { word: "this morning", meaning: "今朝" },
+            // さらに英検4級頻出の単語と熟語を追加
+            { word: "airport", meaning: "空港" }, { word: "America", meaning: "アメリカ" },
+            { word: "angry", meaning: "怒っている" }, { word: "answer", meaning: "答える" },
+            { word: "ball", meaning: "ボール" }, { word: "bank", meaning: "銀行" },
+            { word: "beautiful", meaning: "美しい" }, { word: "begin", meaning: "始める" },
+            { word: "birthday", meaning: "誕生日" }, { word: "boring", meaning: "退屈な" },
+            { word: "brother", meaning: "兄、弟" }, { word: "busy", meaning: "忙しい" },
+            { word: "buy", meaning: "買う" }, { word: "camera", meaning: "カメラ" },
+            { word: "capital", meaning: "首都" }, { word: "classroom", meaning: "教室" },
+            { word: "clean", meaning: "きれいにする" }, { word: "climb", meaning: "登る" },
+            { word: "cloudy", meaning: "曇りの" }, { word: "cook", meaning: "料理する" },
+            { word: "cold", meaning: "風邪" }, { word: "country", meaning: "田舎" },
+            { word: "cousin", meaning: "いとこ" }, { word: "danger", meaning: "危険" },
+            { word: "delicious", meaning: "おいしい" }, { word: "dentist", meaning: "歯医者" },
+            { word: "dictionary", meaning: "辞書" }, { word: "difficult", meaning: "難しい" },
+            { word: "doctor", meaning: "医者" }, { word: "dream", meaning: "夢" },
+            { word: "early", meaning: "早く" }, { word: "exciting", meaning: "わくわくする" },
+            { word: "famous", meaning: "有名な" }, { word: "farm", meaning: "農場" },
+            { word: "favorite", meaning: "お気に入りの" }, { word: "festival", meaning: "お祭り" },
+            { word: "finish", meaning: "終える" }, { word: "foreign", meaning: "外国の" },
+            { word: "future", meaning: "未来" }, { word: "garden", meaning: "庭" },
+            { word: "guest", meaning: "客" }, { word: "guitar", meaning: "ギター" },
+            { word: "happen", meaning: "起こる" }, { word: "heavy", meaning: "重い" },
+            { word: "high school", meaning: "高校" }, { word: "hospital", meaning: "病院" },
+            { word: "hungry", meaning: "空腹の" }, { word: "important", meaning: "重要な" },
+            { word: "invite", meaning: "招待する" }, { word: "island", meaning: "島" },
+            { word: "job", meaning: "仕事" }, { word: "junior high school", meaning: "中学校" },
+            { word: "karaoke", meaning: "カラオケ" }, { word: "kind", meaning: "親切な" },
+            { word: "kitchen", meaning: "台所" }, { word: "library", meaning: "図書館" },
+            { word: "lucky", meaning: "幸運な" }, { word: "magazine", meaning: "雑誌" },
+            { word: "market", meaning: "市場" }, { word: "meeting", meaning: "会議" },
+            { word: "memory", meaning: "思い出" }, { word: "message", meaning: "伝言" },
+            { word: "museum", meaning: "博物館" }, { word: "nervous", meaning: "緊張している" },
+            { word: "news", meaning: "ニュース" }, { word: "noisy", meaning: "うるさい" },
+            { word: "ocean", meaning: "大洋" }, { word: "parent", meaning: "親" },
+            { word: "park", meaning: "公園" }, { word: "passenger", meaning: "乗客" },
+            { word: "peaceful", meaning: "平和な" }, { word: "perform", meaning: "演じる" },
+            { word: "picnic", meaning: "ピクニック" }, { word: "police officer", meaning: "警察官" },
+            { word: "popular", meaning: "人気のある" }, { word: "practice", meaning: "練習する" },
+            { word: "present", meaning: "プレゼント" }, { word: "proud", meaning: "誇りに思って" },
+            { word: "rainy", meaning: "雨の" }, { word: "ready", meaning: "準備ができた" },
+            { word: "reporter", meaning: "記者" }, { word: "restaurant", meaning: "レストラン" },
+            { word: "sad", meaning: "悲しい" }, { word: "safe", meaning: "安全な" },
+            { word: "season", meaning: "季節" }, { word: "secret", meaning: "秘密" },
+            { word: "shy", meaning: "恥ずかしがりの" }, { word: "sister", meaning: "姉、妹" },
+            { word: "smart", meaning: "頭の良い" }, { word: "smile", meaning: "笑顔" },
+            { word: "soft", meaning: "柔らかい" }, { word: "space", meaning: "宇宙、空間" },
+            { word: "speech", meaning: "演説" }, { word: "sport", meaning: "スポーツ" },
+            { word: "station", meaning: "駅" }, { word: "story", meaning: "物語" },
+            { word: "strong", meaning: "強い" }, { word: "student", meaning: "生徒" },
+            { word: "study", meaning: "勉強する" }, { word: "sugar", meaning: "砂糖" },
+            { word: "sunny", meaning: "晴れの" }, { word: "sweet", meaning: "甘い" },
+            { word: "teacher", meaning: "先生" }, { word: "team", meaning: "チーム" },
+            { word: "thin", meaning: "薄い、細い" }, { word: "thirsty", meaning: "喉が渇いた" },
+            { word: "ticket", meaning: "切符" }, { word: "tired", meaning: "疲れた" },
+            { word: "together", meaning: "一緒に" }, { word: "tomorrow", meaning: "明日" },
+            { word: "tourist", meaning: "観光客" }, { word: "train", meaning: "電車" },
+            { word: "travel", meaning: "旅行する" }, { word: "university", meaning: "大学" },
+            { word: "useful", meaning: "役に立つ" }, { word: "vacation", meaning: "休暇" },
+            { word: "visit", meaning: "訪れる" }, { word: "waiter", meaning: "ウェイター" },
+            { word: "warm", meaning: "暖かい" }, { word: "weather", meaning: "天気" },
+            { word: "welcome", meaning: "歓迎する" }, { word: "west", meaning: "西" },
+            { word: "wet", meaning: "濡れた" }, { word: "white", meaning: "白い" },
+            { word: "whole", meaning: "全体の" }, { word: "wide", meaning: "広い" },
+            { word: "wife", meaning: "妻" }, { word: "wild", meaning: "野生の" },
+            { word: "windy", meaning: "風の強い" }, { word: "wonderful", meaning: "素晴らしい" },
+            { word: "wood", meaning: "木材" }, { word: "worry", meaning: "心配する" },
+            { word: "write", meaning: "書く" }, { word: "yesterday", meaning: "昨日" },
+            { word: "young", meaning: "若い" }, { word: "zero", meaning: "ゼロ" },
+            { word: "zoo", meaning: "動物園" },
+            // Additional phrases
+            { word: "as soon as", meaning: "～するとすぐに" }, { word: "be able to", meaning: "～できる" },
+            { word: "be full of", meaning: "～でいっぱいの" }, { word: "be good at", meaning: "～が得意である" },
+            { word: "be proud of", meaning: "～を誇りに思う" }, { word: "by the way", meaning: "ところで" },
+            { word: "catch a cold", meaning: "風邪をひく" }, { word: "come from", meaning: "～の出身である" },
+            { word: "do one's best", meaning: "最善を尽くす" }, { word: "for a long time", meaning: "長い間" },
+            { word: "feel like ~ing", meaning: "～したい気がする" }, { word: "get off", meaning: "～から降りる" },
+            { word: "get on", meaning: "～に乗る" }, { word: "go shopping", meaning: "買い物に行く" },
+            { word: "have a cold", meaning: "風邪をひいている" }, { word: "have a headache", meaning: "頭痛がする" },
+            { word: "have a fever", meaning: "熱がある" }, { word: "help oneself to", meaning: "～を自由に取って食べる" },
+            { word: "How about ~ing?", meaning: "～してはどうですか？" }, { word: "How do you like...?", meaning: "～をどう思いますか？" },
+            { word: "How long...", meaning: "どのくらいの長さ" }, { word: "How often...", meaning: "どのくらいの頻度で" },
+            { word: "in bed", meaning: "寝て" }, { word: "in one's free time", meaning: "自由な時間に" },
+            { word: "It's time to", meaning: "～する時間だ" }, { word: "learn from", meaning: "～から学ぶ" },
+            { word: "look like", meaning: "～のように見える" }, { word: "make friends with", meaning: "～と友達になる" },
+            { word: "many thanks", meaning: "どうもありがとう" }, { word: "May I help you?", meaning: "何かお手伝いしましょうか？" },
+            { word: "never mind", meaning: "気にしないで" }, { word: "no problem", meaning: "問題ない" },
+            { word: "on TV", meaning: "テレビで" }, { word: "once upon a time", meaning: "昔々" },
+            { word: "out of order", meaning: "故障中で" }, { word: "over there", meaning: "あそこに" },
+            { word: "pick up", meaning: "～を拾い上げる" }, { word: "right away", meaning: "すぐに" },
+            { word: "run away", meaning: "逃げる" }, { word: "send for", meaning: "～を呼びにやる" },
+            { word: "speak to", meaning: "～に話しかける" }, { word: "take care of", meaning: "～の世話をする" },
+            { word: "take a walk", meaning: "散歩する" }, { word: "Thanks for ~ing", meaning: "～してくれてありがとう" },
+            { word: "That's why", meaning: "そういうわけで" }, { word: "There is/are", meaning: "～がある/いる" },
+            { word: "What kind of", meaning: "どんな種類の" }, { word: "What's wrong?", meaning: "どうしましたか？" },
+            { word: "What's the matter?", meaning: "どうしましたか？" }, { word: "Why don't we ~?", meaning: "～しませんか？" },
+            { word: "with me", meaning: "私と一緒に" }, { word: "would like to", meaning: "～したい" }
+        ];
+
+        // --- DOM Elements: HTML要素への参照 ---
+        const gameSetupScreen = document.getElementById('game-setup'); // ゲーム設定画面
+        const gamePlayScreen = document.getElementById('game-play');     // ゲームプレイ画面
+        const gameResultsScreen = document.getElementById('game-results'); // ゲーム結果画面
+        const timeSelectButtons = document.querySelectorAll('.time-select-btn'); // 時間選択ボタン
+        const startGameBtn = document.getElementById('start-game-btn');     // ゲーム開始ボタン
+        const playAgainBtn = document.getElementById('play-again-btn');     // もう一度プレイボタン
+
+        const timeLeftSpan = document.getElementById('time-left');         // 残り時間表示
+        const scoreSpan = document.getElementById('score');                 // スコア表示
+        const highScoreSpan = document.getElementById('high-score');         // ハイスコア表示 (設定画面)
+        const lastScoreSpan = document.getElementById('last-score');         // 前回スコア表示 (設定画面)
+        const totalVocabCountSpan = document.getElementById('total-vocab-count'); // 全単語数表示
+
+        const currentWordDisplay = document.getElementById('current-word');     // 現在の単語表示
+        const optionsContainer = document.getElementById('options-container'); // 選択肢ボタンのコンテナ
+
+        const finalScoreDisplay = document.getElementById('final-score');         // 最終スコア表示 (結果画面)
+        const correctCountDisplay = document.getElementById('correct-count');     // 正解数表示 (結果画面)
+        const incorrectCountDisplay = document.getElementById('incorrect-count'); // 不正解数表示 (結果画面)
+        const resultsHighScoreDisplay = document.getElementById('results-high-score'); // ハイスコア表示 (結果画面)
+        const resultsLastScoreDisplay = document.getElementById('results-last-score'); // 前回スコア表示 (結果画面)
+        const incorrectWordsList = document.getElementById('incorrect-words-list'); // 間違えた単語リスト
+        const resultImage = document.getElementById('result-image');             // 結果画面の画像
+
+        // --- Game Variables: ゲームの状態を管理する変数 ---
+        let shuffledVocabulary = []; // シャッフルされた単語リスト
+        let currentWordIndex = 0;    // 現在表示中の単語のインデックス
+        let score = 0;               // 現在のスコア
+        let correctCount = 0;        // 正解数
+        let incorrectCount = 0;      // 不正解数
+        let incorrectWords = [];     // 間違えた単語とその正解、選択した回答
+        let timer;                   // タイマーID
+        let selectedTimeLimit = 30;  // 選択された時間制限（デフォルトは30秒）
+        let timeLeft;                // 残り時間
+        // ローカルストレージからハイスコアと前回スコアを読み込み、存在しない場合は0を初期値とする
+        let highScore = localStorage.getItem('eikenHighScoreYuri') ? parseInt(localStorage.getItem('eikenHighScoreYuri')) : 0;
+        let lastScore = localStorage.getItem('eikenLastScoreYuri') ? parseInt(localStorage.getItem('eikenLastScoreYuri')) : 0;
+
+        // --- Helper Functions: ヘルパー関数 ---
+
+        /**
+         * 配列をFisher-Yates (Knuth) アルゴリズムでシャッフルします。
+         * @param {Array} array シャッフルする配列。
+         * @returns {Array} シャッフルされた配列。
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // 要素をスワップ
+            }
+            return array;
+        }
+
+        /**
+         * 指定された正解の単語に対する4つの選択肢（正解1つ、不正解3つ）を生成します。
+         * 選択肢はユニークであることを保証します。
+         * @param {Object} correctWord - 正解の単語オブジェクト {word: "...", meaning: "..."}。
+         * @param {Array} allWords - 全体の単語リスト。
+         * @returns {Array} 4つの選択肢オブジェクト {meaning: "...", isCorrect: true/false} の配列。
+         */
+        function generateOptions(correctWord, allWords) {
+            const options = [];
+            options.push({ meaning: correctWord.meaning, isCorrect: true }); // 正解を追加
+
+            // 正解以外の意味を収集し、シャッフル
+            const otherMeanings = shuffleArray(allWords
+                .filter(item => item.word !== correctWord.word) // 正解の単語自体を除外
+                .map(item => item.meaning));
+
+            // 不正解の選択肢を3つ追加
+            for (let i = 0; options.length < 4 && i < otherMeanings.length; i++) {
+                // 正解と同じ意味ではなく、かつ既に選択肢にないものだけを追加
+                if (otherMeanings[i] !== correctWord.meaning && !options.some(opt => opt.meaning === otherMeanings[i])) {
+                    options.push({ meaning: otherMeanings[i], isCorrect: false });
+                }
+            }
+
+            // もし4つのユニークな選択肢が集まらなかった場合（非常に少ない語彙や重複が多い場合）のフォールバック
+            while (options.length < 4) {
+                const randomMeaning = otherMeanings[Math.floor(Math.random() * otherMeanings.length)];
+                if (randomMeaning && !options.some(opt => opt.meaning === randomMeaning)) {
+                    options.push({ meaning: randomMeaning, isCorrect: false });
+                } else {
+                    // ユニークな意味が見つからない場合、汎用的なプレースホルダーを追加
+                    options.push({ meaning: `[Option ${options.length + 1}]`, isCorrect: false });
+                }
+            }
+            // 念のため、選択肢が4つになるように調整（通常は必要ないはず）
+            while (options.length > 4) {
+                options.pop();
+            }
+
+            return shuffleArray(options); // 選択肢の順番をシャッフルして表示
+        }
+
+        /**
+         * ハイスコアと前回スコアをローカルストレージに保存します。
+         */
+        function saveScores() {
+            localStorage.setItem('eikenHighScoreYuri', highScore);
+            localStorage.setItem('eikenLastScoreYuri', lastScore);
+        }
+
+        /**
+         * ローカルストレージからスコアを読み込み、表示を更新します。
+         */
+        function loadAndDisplayScores() {
+            highScore = localStorage.getItem('eikenHighScoreYuri') ? parseInt(localStorage.getItem('eikenHighScoreYuri')) : 0;
+            lastScore = localStorage.getItem('eikenLastScoreYuri') ? parseInt(localStorage.getItem('eikenLastScoreYuri')) : 0;
+            highScoreSpan.textContent = highScore;
+            lastScoreSpan.textContent = lastScore;
+        }
+
+        /**
+         * ゲーム変数を初期状態にリセットします。
+         */
+        function resetGame() {
+            score = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            incorrectWords = [];
+            currentWordIndex = 0;
+            clearInterval(timer); // 既存のタイマーをクリア
+            timeLeft = selectedTimeLimit; // 選択された時間制限で残り時間を設定
+            scoreSpan.textContent = score;
+            timeLeftSpan.textContent = timeLeft;
+        }
+
+        /**
+         * 現在の単語とその選択肢を表示します。
+         * すべての単語が表示されたら、再度シャッフルして繰り返します。
+         */
+        function displayWord() {
+            // すべての単語が表示された場合、単語リストを再度シャッフル
+            if (currentWordIndex >= shuffledVocabulary.length) {
+                shuffledVocabulary = shuffleArray([...vocabulary]); // 元の語彙リストのコピーをシャッフル
+                currentWordIndex = 0; // インデックスをリセット
+            }
+
+            const currentWord = shuffledVocabulary[currentWordIndex]; // 表示する単語
+            currentWordDisplay.textContent = currentWord.word;
+
+            const options = generateOptions(currentWord, vocabulary); // 選択肢を生成
+            optionsContainer.innerHTML = ''; // 前の選択肢をクリア
+
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option.meaning;
+                button.classList.add('option-btn');
+                button.dataset.isCorrect = option.isCorrect; // 正解かどうかをデータ属性に保存
+                button.addEventListener('click', checkAnswer); // 回答チェックのイベントリスナー
+                optionsContainer.appendChild(button);
+            });
+
+            currentWordIndex++; // 次の単語へインデックスを進める
+        }
+
+        /**
+         * 選択された回答をチェックし、スコアを更新します。
+         * @param {Event} event クリックイベント。
+         */
+        function checkAnswer(event) {
+            const clickedButton = event.target;
+            const isCorrect = clickedButton.dataset.isCorrect === 'true';
+            const chosenMeaning = clickedButton.textContent;
+            // 現在表示されていた単語（currentWordIndexは既にインクリメントされているため -1 する）
+            const currentWord = shuffledVocabulary[currentWordIndex - 1];
+
+            // 全てのオプションボタンを無効化し、ユーザーが複数の回答をしないようにする
+            Array.from(optionsContainer.children).forEach(btn => btn.removeEventListener('click', checkAnswer));
+
+            if (isCorrect) {
+                score += 10; // 正解の場合スコアを加算
+                correctCount++;
+                clickedButton.classList.add('correct'); // 正解の視覚的フィードバック
+            } else {
+                incorrectCount++;
+                clickedButton.classList.add('incorrect'); // 不正解の視覚的フィードバック
+                // 間違えた単語をリストに追加
+                incorrectWords.push({
+                    word: currentWord.word,
+                    correctMeaning: currentWord.meaning,
+                    chosenMeaning: chosenMeaning
+                });
+                // 正解のボタンを探してハイライトする（不正解だった場合のみ）
+                Array.from(optionsContainer.children).forEach(btn => {
+                    if (btn.dataset.isCorrect === 'true') {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+            scoreSpan.textContent = score; // スコア表示を更新
+
+            // 短い遅延の後、次の単語を表示
+            setTimeout(() => {
+                clickedButton.classList.remove('correct', 'incorrect'); // フィードバックの色をリセット
+                Array.from(optionsContainer.children).forEach(btn => { // 正解ハイライトもリセット
+                    btn.classList.remove('correct');
+                    // 再度イベントリスナーを追加して、次の問題でクリックできるようにする
+                    btn.addEventListener('click', checkAnswer);
+                });
+                displayWord(); // 次の単語を表示
+            }, 700); // 0.7秒後に次の問題へ
+        }
+
+        /**
+         * ゲームタイマーを開始します。
+         */
+        function startTimer() {
+            timeLeft = selectedTimeLimit; // 設定された時間でタイマーを初期化
+            timeLeftSpan.textContent = timeLeft;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timeLeftSpan.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer); // タイマーを停止
+                    endGame(); // ゲーム終了処理
+                }
+            }, 1000); // 1秒ごとに更新
+        }
+
+        /**
+         * ゲームを終了し、結果画面を表示します。
+         */
+        function endGame() {
+            // スコアを更新
+            lastScore = score;
+            if (score > highScore) {
+                highScore = score;
+            }
+            saveScores();          // スコアをローカルストレージに保存
+            loadAndDisplayScores(); // 設定画面のスコア表示も更新
+
+            // 画面を切り替え
+            gamePlayScreen.classList.add('hidden');
+            gameSetupScreen.classList.add('hidden');
+            gameResultsScreen.classList.remove('hidden');
+
+            // 結果詳細を反映
+            finalScoreDisplay.textContent = score;
+            correctCountDisplay.textContent = correctCount;
+            incorrectCountDisplay.textContent = incorrectCount;
+            resultsHighScoreDisplay.textContent = highScore;
+            resultsLastScoreDisplay.textContent = lastScore;
+
+            // 間違えた単語リストを表示
+            incorrectWordsList.innerHTML = ''; // リストをクリア
+            if (incorrectWords.length === 0) {
+                incorrectWordsList.innerHTML = '<li>Great job! No words missed!</li>'; // 間違いがなければメッセージ
+            } else {
+                incorrectWords.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${item.word} (Correct: ${item.correctMeaning}, Your Answer: ${item.chosenMeaning})`;
+                    incorrectWordsList.appendChild(listItem);
+                });
+            }
+        }
+
+        // --- Event Listeners: イベントリスナーの設定 ---
+
+        // 時間選択ボタンのイベントリスナー
+        timeSelectButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // すべてのボタンから選択済みクラスを削除
+                timeSelectButtons.forEach(btn => btn.classList.remove('selected-time'));
+                // クリックされたボタンに選択済みクラスを追加
+                button.classList.add('selected-time');
+                selectedTimeLimit = parseInt(button.dataset.time); // データ属性から時間制限を取得
+                timeLeftSpan.textContent = selectedTimeLimit; // 表示されている残り時間を更新
+            });
+        });
+
+        // ゲーム開始ボタンのイベントリスナー
+        startGameBtn.addEventListener('click', () => {
+            resetGame(); // ゲーム状態をリセット
+            shuffledVocabulary = shuffleArray([...vocabulary]); // 新しいシャッフル済み単語リストを作成
+            gameSetupScreen.classList.add('hidden');    // 設定画面を非表示
+            gamePlayScreen.classList.remove('hidden'); // プレイ画面を表示
+            displayWord(); // 最初の単語を表示
+            startTimer();  // タイマー開始
+        });
+
+        // もう一度プレイボタンのイベントリスナー
+        playAgainBtn.addEventListener('click', () => {
+            gameResultsScreen.classList.add('hidden'); // 結果画面を非表示
+            gameSetupScreen.classList.remove('hidden'); // 設定画面を表示
+            loadAndDisplayScores(); // スコアを再読み込みして表示を更新
+
+            // 時間選択ボタンの見た目を初期状態（30秒選択済み）に戻す
+            timeSelectButtons.forEach(btn => btn.classList.remove('selected-time'));
+            document.querySelector(`.time-select-btn[data-time="30"]`).classList.add('selected-time');
+            selectedTimeLimit = 30; // 選択された時間制限を30秒にリセット
+            timeLeftSpan.textContent = selectedTimeLimit; // 表示されている残り時間を更新
+        });
+
+        // --- Initial Setup on Load: ページ読み込み時の初期設定 ---
+        window.onload = () => {
+            loadAndDisplayScores(); // ページ読み込み時にスコアをロードして表示
+            // デフォルトで30秒ボタンを選択済みにする
+            document.querySelector(`.time-select-btn[data-time="30"]`).classList.add('selected-time');
+            timeLeftSpan.textContent = selectedTimeLimit; // 初期表示の残り時間を設定（30秒）
+            totalVocabCountSpan.textContent = vocabulary.length; // 全単語数を表示
+        };
+
+    </script>
+</body>
+</html>
