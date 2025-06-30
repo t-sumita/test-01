@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eiken Grade 4 Vocab Game for Yuri ✨</title>
+    <title>Eiken Grade 4 Vocab Game ✨</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Cute font: Mochiy Pop P One -->
     <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap" rel="stylesheet">
@@ -82,7 +82,7 @@
 </head>
 <body>
     <div class="game-container">
-        <h1 class="text-3xl font-bold text-gray-800 mb-4">Eiken Grade 4 Vocab Game for Yuri ✨</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Eiken Grade 4 Vocab Game ✨</h1>
 
         <!-- Score and Timer Display (always visible during gameplay) -->
         <div class="flex justify-between items-center bg-gray-100 p-4 rounded-lg shadow-sm">
@@ -98,6 +98,8 @@
                 <button class="time-select-btn btn" data-time="60">1 Minute</button>
             </div>
             <p class="text-md text-gray-600">Total vocabulary words: <span id="total-vocab-count"></span></p>
+            <!-- テキストを修正しました -->
+            <p class="text-lg font-semibold text-gray-700 mb-4">今回の応援イラストはどんなかな？</p>
             <button id="start-game-btn" class="btn mt-6">Start Game</button>
             <div class="score-display text-gray-600 text-lg">
                 <p>High Score: <span id="high-score">0</span></p>
@@ -118,8 +120,8 @@
         <!-- Game Result Screen -->
         <div id="game-results" class="hidden text-center">
             <h2 class="result-title">Game Over!</h2>
-            <!-- Cute result image placeholder updated with the new URL -->
-            <img id="result-image" src="https://kai-you.net/images/a/2023/01/f137df8e1f987837cf55187e609bc9ac.jpg" alt="Result Illustration" class="mx-auto my-4 rounded-lg shadow-md max-w-full h-auto">
+            <!-- 画像URLはJavaScriptで設定されるためsrcは空のまま -->
+            <img id="result-image" src="" alt="Result Illustration" class="mx-auto my-4 rounded-lg shadow-md max-w-full h-auto">
             <p class="result-item">Final Score: <span id="final-score" class="font-bold">0</span></p>
             <p class="result-item">Correct Answers: <span id="correct-count" class="font-bold">0</span></p>
             <p class="result-item">Incorrect Answers: <span id="incorrect-count" class="font-bold">0</span></p>
@@ -375,6 +377,19 @@
         let highScore = localStorage.getItem('eikenHighScoreYuri') ? parseInt(localStorage.getItem('eikenHighScoreYuri')) : 0;
         let lastScore = localStorage.getItem('eikenLastScoreYuri') ? parseInt(localStorage.getItem('eikenLastScoreYuri')) : 0;
 
+        // 画像URLのリスト
+        const imageUrls = [
+            "https://kai-you.net/images/a/2023/01/f137df8e1f987837cf55187e609bc9ac.jpg",
+            "https://pbs.twimg.com/media/Fr-VKfCagAAUDCY.jpg",
+            "https://pbs.twimg.com/media/FlsvcCoaEAErjmK.jpg",
+            "./2023-kids-soran.png",
+            "https://uf.kentei.cc/img/482164/question/1697900483820.jpg",
+            "https://pbs.twimg.com/media/E7ep1mQUcAMbWkh.jpg",
+            "https://pbs.twimg.com/media/FlpMufdaAAA45xc.png",
+            "https://i.pinimg.com/736x/ad/6b/c0/ad6bc014b89296f9f0e1df9449e688ca.jpg",
+            "https://pbs.twimg.com/media/Fl__Q47akAAPgvA.jpg"
+        ];
+
         // --- Helper Functions: ヘルパー関数 ---
 
         /**
@@ -570,6 +585,10 @@
             }
             saveScores();          // スコアをローカルストレージに保存
             loadAndDisplayScores(); // 設定画面のスコア表示も更新
+
+            // ランダムな画像を設定
+            const randomIndex = Math.floor(Math.random() * imageUrls.length);
+            resultImage.src = imageUrls[randomIndex];
 
             // 画面を切り替え
             gamePlayScreen.classList.add('hidden');
