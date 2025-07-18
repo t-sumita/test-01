@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本の歴史探訪クイズ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Warm Harmony -->
+    <!-- Application Structure Plan: The application is designed as a three-stage experience: 1. Period Selection Hub, 2. Interactive Quiz, 3. Results & Review. This non-linear structure empowers users to choose their learning path, making exploration more engaging than a standard linear quiz. The hub introduces the eras, the quiz provides focused challenges, and the results screen offers clear feedback with data visualization and a review section, promoting deeper understanding. This architecture was chosen for its user-centric flow, encouraging repeated engagement and self-directed learning. -->
+    <!-- Visualization & Content Choices: 1. Report Info: Historical Periods -> Goal: Organize/Navigate -> Viz/Method: Interactive HTML/CSS Cards -> Interaction: Click to start quiz -> Justification: User-driven, non-linear exploration is more engaging. 2. Report Info: Quiz Score (Correct/Incorrect) -> Goal: Inform/Summarize -> Viz/Method: Chart.js Donut Chart -> Interaction: Hover for tooltips -> Justification: Provides a clear, immediate visual summary of performance. 3. Report Info: Incorrect Answers -> Goal: Review/Learn -> Viz/Method: Styled HTML List -> Interaction: Static display -> Justification: Allows users to review mistakes and learn from explanations, reinforcing knowledge. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+
+        .bg-primary {
+            background-color: #FDFBF8;
+        }
+
+        .bg-secondary {
+            background-color: #F4ECE6;
+        }
+
+        .text-main {
+            color: #4A4A4A;
+        }
+
+        .text-accent {
+            color: #C88A65;
+        }
+
+        .border-accent {
+            border-color: #C88A65;
+        }
+
+        .button-primary {
+            background-color: #C88A65;
+            color: #FFFFFF;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .button-primary:hover {
+            background-color: #AF714F;
+            transform: translateY(-2px);
+        }
+
+        .button-secondary {
+            background-color: #E0D8D1;
+            color: #4A4A4A;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .button-secondary:hover {
+            background-color: #CFC5BD;
+            transform: translateY(-2px);
+        }
+
+        .period-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .period-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .answer-btn.correct {
+            background-color: #34D399 !important;
+            /* Green-400 */
+            color: white !important;
+            border-color: #34D399 !important;
+        }
+
+        .answer-btn.incorrect {
+            background-color: #F87171 !important;
+            /* Red-400 */
+            color: white !important;
+            border-color: #F87171 !important;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-primary text-main">
+
+    <div id="app" class="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
+
+        <!-- Header Section -->
+        <header class="text-center mb-10 md:mb-16">
+            <h1 class="text-3xl md:text-5xl font-bold text-accent">日本の歴史探訪クイズ</h1>
+            <p class="mt-2 md:mt-4 text-md md:text-lg text-gray-600">時代を選んで、学べるよ。<br>
+                挑戦したい時代を選んでね。総合クイズは、すべての時代から出題されるよ。
+                <img src="./img/japan-history.png" alt="Japan History." style="width: 100vw; height: auto;">
+            </p>
+        </header>
+
+        <!-- App Content: This will be dynamically populated -->
+        <main id="app-content">
+            <!-- Period Selection (Lobby) will be rendered here -->
+            <!-- Quiz will be rendered here -->
+            <!-- Results will be rendered here -->
+        </main>
+
+    </div>
+
+    <script>
+        const quizData = [
+            { period: '縄文時代', question: '縄文時代に使われた、文様のある<ruby>土器<rt>どき</rt></ruby>は何と呼ばれる？', options: ['<ruby>弥生土器<rt>やよいどき</rt></ruby>', '<ruby>須恵器<rt>すえき</rt></ruby>', '<ruby>縄文土器<rt>じょうもんどき</rt></ruby>', '<ruby>土師器<rt>はじき</rt></ruby>'], answer: 2, explanation: '<ruby>縄文土器<rt>じょうもんどき</rt></ruby>は、<ruby>縄<rt>なわ</rt></ruby>の<ruby>文様<rt>もんよう</rt></ruby>が<ruby>特徴的<rt>とくちょうてき</rt></ruby>な<ruby>土器<rt>どき</rt></ruby>です。' },
+            { period: '縄文時代', question: '縄文時代の人々が<ruby>主<rt>おも</rt></ruby>に<ruby>食<rt>た</rt></ruby>べていたものは<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>米<rt>こめ</rt></ruby>', '<ruby>肉<rt>にく</rt></ruby>', '<ruby>魚介類<rt>ぎょかいるい</rt></ruby>と<ruby>木<rt>き</rt></ruby>の<ruby>実<rt>み</rt></ruby>', '<ruby>野菜<rt>やさい</rt></ruby>'], answer: 2, explanation: '<ruby>狩猟採集<rt>しゅりょうさいしゅう</rt></ruby>が<ruby>中心<rt>ちゅうしん</rt></ruby>で、<ruby>魚介類<rt>ぎょかいるい</rt></ruby>や<ruby>木<rt>き</rt></ruby>の<ruby>実<rt>み</rt></ruby>を<ruby>豊富<rt>ほうふ</rt></ruby>に<ruby>利用<rt>りよう</rt></ruby>していました。' },
+            { period: '縄文時代', question: '縄文時代に使われた、<ruby>食<rt>た</rt></ruby>べ<ruby>物<rt>もの</rt></ruby>を<ruby>煮<rt>に</rt></ruby>るのに<ruby>適<rt>てき</rt></ruby>した<ruby>土器<rt>どき</rt></ruby>の<ruby>形<rt>かたち</rt></ruby>は？', options: ['<ruby>深鉢形<rt>ふかばちがた</rt></ruby>', '<ruby>浅鉢形<rt>あさばちがた</rt></ruby>', '<ruby>壺形<rt>つぼがた</rt></ruby>', '<ruby>瓶形<rt>かめがた</rt></ruby>'], answer: 0, explanation: '<ruby>煮炊<rt>にたき</rt></ruby>に<ruby>使<rt>つか</rt></ruby>われることが<ruby>多<rt>おお</rt></ruby>かった<ruby>深鉢形土器<rt>ふかばちがたどき</rt></ruby>が<ruby>特徴的<rt>とくちょうてき</rt></ruby>です。' },
+            { period: '縄文時代', question: '縄文時代に<ruby>祈<rt>いの</rt></ruby>りや<ruby>呪術<rt>じゅじゅつ</rt></ruby>に<ruby>使<rt>つか</rt></ruby>われたとされる、<ruby>女性<rt>じょせい</rt></ruby>をかたどった<ruby>土製品<rt>どせいひん</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>銅鐸<rt>どうたく</rt></ruby>', '<ruby>埴輪<rt>はにわ</rt></ruby>', '<ruby>土偶<rt>どぐう</rt></ruby>', '<ruby>勾玉<rt>まがたま</rt></ruby>'], answer: 2, explanation: '<ruby>土偶<rt>どぐう</rt></ruby>は、<ruby>豊穣<rt>ほうじょう</rt></ruby>や<ruby>安産<rt>あんざん</rt></ruby>を<ruby>願<rt>ねが</rt></ruby>うために<ruby>作<rt>つく</rt></ruby>られたと<ruby>考<rt>かんが</rt></ruby>えられています。' },
+            { period: '縄文時代', question: '縄文時代の<ruby>集落跡<rt>しゅうらくあと</rt></ruby>で<ruby>発見<rt>はっけん</rt></ruby>される、<ruby>貝殻<rt>かいがら</rt></ruby>や<ruby>動物<rt>どうぶつ</rt></ruby>の<ruby>骨<rt>ほね</rt></ruby>などが<ruby>捨<rt>す</rt></ruby>てられた<ruby>場所<rt>ばしょ</rt></ruby>を<ruby>何<rt>なん</rt></ruby>と<ruby>呼<rt>よ</rt></ruby>ぶ？', options: ['<ruby>貝塚<rt>かいづか</rt></ruby>', '<ruby>遺跡<rt>いせき</rt></ruby>', '<ruby>住居跡<rt>じゅうきょあと</rt></ruby>', '<ruby>祭祀場<rt>さいしじょう</rt></ruby>'], answer: 0, explanation: '<ruby>貝塚<rt>かいづか</rt></ruby>は、<ruby>当時<rt>とうじ</rt></ruby>の<ruby>食生活<rt>しょくせいかつ</rt></ruby>や<ruby>生活様式<rt>せいかつようしき</rt></ruby>を<ruby>知<rt>し</rt></ruby>る<ruby>重要<rt>じゅうよう</rt></ruby>な<ruby>手<rt>て</rt></ruby>がかりです。' },
+
+            { period: '弥生時代', question: '弥生時代に<ruby>大陸<rt>たいりく</rt></ruby>から<ruby>伝<rt>つた</rt></ruby>わり、<ruby>生活<rt>せいかつ</rt></ruby>を<ruby>大<rt>おお</rt></ruby>きく<ruby>変<rt>か</rt></ruby>えた<ruby>技術<rt>ぎじゅつ</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>製鉄技術<rt>せいてつぎじゅつ</rt></ruby>', '<ruby>稲作<rt>いなさく</rt></ruby>', '<ruby>陶器<rt>とうき</rt></ruby>作り', '<ruby>活版印刷<rt>かっぱんいんさつ</rt></ruby>'], answer: 1, explanation: '<ruby>稲作<rt>いなさく</rt></ruby>の<ruby>伝来<rt>でんらい</rt></ruby>により、<ruby>定住生活<rt>ていじゅうせいかつ</rt></ruby>が<ruby>始<rt>はじ</rt></ruby>まり、<ruby>社会<rt>しゃかい</rt></ruby>が<ruby>大<rt>おお</rt></ruby>きく<ruby>変化<rt>へんか</rt></ruby>しました。' },
+            { period: '弥生時代', question: '弥生時代に<ruby>作<rt>つく</rt></ruby>られた、<ruby>祭<rt>まつ</rt></ruby>りの<ruby>道具<rt>どうぐ</rt></ruby>や<ruby>武器<rt>ぶき</rt></ruby>に<ruby>使<rt>つか</rt></ruby>われた<ruby>金属器<rt>きんぞくき</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>鉄器<rt>てっき</rt></ruby>', '<ruby>青銅器<rt>せいどうき</rt></ruby>', '<ruby>金器<rt>きんき</rt></ruby>', '<ruby>銀器<rt>ぎんき</rt></ruby>'], answer: 1, explanation: '弥生時代には、<ruby>青銅器<rt>せいどうき</rt></ruby>が<ruby>祭器<rt>さいき</rt></ruby>や<ruby>武器<rt>ぶき</rt></ruby>として<ruby>使<rt>つか</rt></ruby>われました。' },
+            { period: '弥生時代', question: '弥生時代に<ruby>作<rt>つく</rt></ruby>られた、<ruby>米<rt>こめ</rt></ruby>の<ruby>貯蔵<rt>ちょぞう</rt></ruby>に<ruby>使<rt>つか</rt></ruby>われた<ruby>施設<rt>しせつ</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>高床倉庫<rt>たかゆかそうこ</rt></ruby>', '<ruby>竪穴住居<rt>たてあなじゅうきょ</rt></ruby>', '<ruby>横穴墓<rt>よこあなぼ</rt></ruby>', '<ruby>貝塚<rt>かいづか</rt></ruby>'], answer: 0, explanation: '<ruby>高床倉庫<rt>たかゆかそうこ</rt></ruby>は、<ruby>湿気<rt>しっけ</rt></ruby>や<ruby>鼠<rt>ねずみ</rt></ruby>から<ruby>収穫物<rt>しゅうかくぶつ</rt></ruby>を<ruby>守<rt>まも</rt></ruby>るために<ruby>作<rt>つく</rt></ruby>られました。' },
+            { period: '弥生時代', question: '弥生時代に、<ruby>集落<rt>しゅうらく</rt></ruby>の<ruby>間<rt>あいだ</rt></ruby>で<ruby>起<rt>お</rt></ruby>こり<ruby>始<rt>はじ</rt></ruby>めた<ruby>争<rt>あらそ</rt></ruby>いの<ruby>痕跡<rt>こんせき</rt></ruby>が<ruby>見<rt>み</rt></ruby>られる<ruby>場所<rt>ばしょ</rt></ruby>は？', options: ['<ruby>墓地<rt>ぼち</rt></ruby>', '<ruby>高地性集落<rt>こうちせいしゅうらく</rt></ruby>', '<ruby>市場<rt>いちば</rt></ruby>', '<ruby>祭祀場<rt>さいしじょう</rt></ruby>'], answer: 1, explanation: '<ruby>高地性集落<rt>こうちせいしゅうらく</rt></ruby>は、<ruby>敵<rt>てき</rt></ruby>からの<ruby>攻撃<rt>こうげき</rt></ruby>に<ruby>備<rt>そな</rt></ruby>えて<ruby>高台<rt>たかだい</rt></ruby>に<ruby>作<rt>つく</rt></ruby>られました。' },
+            { period: '弥生時代', question: '弥生時代に<ruby>大陸<rt>たいりく</rt></ruby>から<ruby>伝<rt>つた</rt></ruby>わった、<ruby>稲作<rt>いなさく</rt></ruby>に<ruby>必要<rt>ひつよう</rt></ruby>な<ruby>道具<rt>どうぐ</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>鍬<rt>くわ</rt></ruby>・<ruby>鋤<rt>すき</rt></ruby>', '<ruby>石包丁<rt>いしぼうちょう</rt></ruby>', '<ruby>鉄器<rt>てっき</rt></ruby>', '<ruby>銅鐸<rt>どうたく</rt></ruby>'], answer: 0, explanation: '<ruby>鍬<rt>くわ</rt></ruby>や<ruby>鋤<rt>すき</rt></ruby>を<ruby>使<rt>つか</rt></ruby>って<ruby>田<rt>た</rt></ruby>を<ruby>耕<rt>たがや</rt></ruby>し、<ruby>稲作<rt>いなさく</rt></ruby>を<ruby>行<rt>おこな</rt></ruby>いました。' },
+
+            { period: '古墳時代（ヤマト王権）', question: '<ruby>古墳時代<rt>こふんじだい</rt></ruby>に<ruby>作<rt>つく</rt></ruby>られた、<ruby>権力者<rt>けんりょくしゃ</rt></ruby>の<ruby>墓<rt>はか</rt></ruby>は<ruby>何<rt>なに</rt></ruby>と<ruby>呼<rt>よ</rt></ruby>ばれる？', options: ['<ruby>弥生墳<rt>やよいふん</rt></ruby>', '<ruby>方形周溝墓<rt>ほうけいしゅうこうぼ</rt></ruby>', '<ruby>古墳<rt>こふん</rt></ruby>', '<ruby>横穴墓<rt>よこあなぼ</rt></ruby>'], answer: 2, explanation: '<ruby>古墳<rt>こふん</rt></ruby>は、<ruby>古代<rt>こだい</rt></ruby>の<ruby>有力者<rt>ゆうりょくしゃ</rt></ruby>の<ruby>お墓<rt>はか</rt></ruby>で、<ruby>権力<rt>けんりょく</rt></ruby>の<ruby>象徴<rt>しょうちょう</rt></ruby>でもありました。' },
+            { period: '古墳時代（ヤマト王権）', question: '<ruby>古墳<rt>こふん</rt></ruby>の<ruby>周<rt>まわ</rt></ruby>りに<ruby>並<rt>なら</rt></ruby>べられた、<ruby>人<rt>ひと</rt></ruby>や<ruby>動物<rt>どうぶつ</rt></ruby>などをかたどった<ruby>素焼<rt>すや</rt></ruby>きの<ruby>焼<rt>や</rt></ruby>き<ruby>物<rt>もの</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>土偶<rt>どぐう</rt></ruby>', '<ruby>埴輪<rt>はにわ</rt></ruby>', '<ruby>銅鐸<rt>どうたく</rt></ruby>', '<ruby>勾玉<rt>まがたま</rt></ruby>'], answer: 1, explanation: '<ruby>埴輪<rt>はにわ</rt></ruby>は、<ruby>古墳時代<rt>こふんじだい</rt></ruby>に<ruby>作<rt>つく</rt></ruby>られた<ruby>土製<rt>どせい</rt></ruby>の<ruby>焼<rt>や</rt></ruby>き<ruby>物<rt>もの</rt></ruby>で、<ruby>墓<rt>はか</rt></ruby>の<ruby>飾<rt>かざ</rt></ruby>りとして<ruby>用<rt>もち</rt></ruby>いられました。' },
+            { period: '古墳時代（ヤマト王権）', question: '<ruby>ヤマト王権<rt>やまとおうけん</rt></ruby>が<ruby>朝鮮半島<rt>ちょうせんはんとう</rt></ruby>に<ruby>進出<rt>しんしゅつ</rt></ruby>し、<ruby>交流<rt>こうりゅう</rt></ruby>していた<ruby>国<rt>くに</rt></ruby>は？', options: ['<ruby>新羅<rt>しんら</rt></ruby>', '<ruby>百済<rt>くだら</rt></ruby>', '<ruby>高句麗<rt>こうくり</rt></ruby>', '<ruby>伽耶<rt>かや</rt></ruby>'], answer: 1, explanation: '<ruby>ヤマト王権<rt>やまとおうけん</rt></ruby>は、<ruby>特<rt>とく</rt></ruby>に<ruby>百済<rt>くだら</rt></ruby>との<ruby>関係<rt>かんけい</rt></ruby>が<ruby>深<rt>ふか</rt></ruby>く、<ruby>文化<rt>ぶんか</rt></ruby>や<ruby>技術<rt>ぎじゅつ</rt></ruby>が<ruby>日本<rt>にほん</rt></ruby>に<ruby>伝<rt>つた</rt></ruby>えられました。' },
+            { period: '古墳時代（ヤマト王権）', question: '<ruby>巨大<rt>きょだい</rt></ruby>な<ruby>前方後円墳<rt>ぜんぽうこうえんふん</rt></ruby>が<ruby>集中<rt>しゅうちゅう</rt></ruby>して<ruby>作<rt>つく</rt></ruby>られた<ruby>地域<rt>ちいき</rt></ruby>は、<ruby>特<rt>とく</rt></ruby>にどこが<ruby>有名<rt>ゆうめい</rt></ruby>？', options: ['<ruby>関東地方<rt>かんとうちほう</rt></ruby>', '<ruby>近畿地方<rt>きんきちほう</rt></ruby>', '<ruby>九州地方<rt>きゅうしゅうちほう</rt></ruby>', '<ruby>東北地方<rt>とうほくちほう</rt></ruby>'], answer: 1, explanation: '<ruby>大和政権<rt>やまとせいけん</rt></ruby>の<ruby>中心地<rt>ちゅうしんち</rt></ruby>である<ruby>近畿地方<rt>きんきちほう</rt></ruby>に、<ruby>多<rt>おお</rt></ruby>くの<ruby>巨大古墳<rt>きょだいこふん</rt></ruby>が<ruby>集中<rt>しゅうちゅう</rt></ruby>しています。' },
+            { period: '古墳時代（ヤマト王権）', question: '<ruby>古墳時代<rt>こふんじだい</rt></ruby>に、<ruby>ヤマト王権<rt>やまとおうけん</rt></ruby>が<ruby>諸豪族<rt>しょごうぞく</rt></ruby>を<ruby>従<rt>したが</rt></ruby>えるために<ruby>用<rt>もち</rt></ruby>いた<ruby>制度<rt>せいど</rt></ruby>で、<ruby>姓<rt>かばね</rt></ruby>（<ruby>カバネ<rt>かばね</rt></ruby>）を<ruby>与<rt>あた</rt></ruby>えたものは<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>班田収授法<rt>はんでんしゅうじゅほう</rt></ruby>', '<ruby>御恩<rt>ごおん</rt></ruby>と<ruby>奉公<rt>ほうこう</rt></ruby>', '<ruby>氏姓制度<rt>しせいせいど</rt></ruby>', '<ruby>大宝律令<rt>たいほうりつりょう</rt></ruby>'], answer: 2, explanation: '<ruby>氏姓制度<rt>しせいせいど</rt></ruby>は、<ruby>ヤマト王権<rt>やまとおうけん</rt></ruby>が<ruby>豪族<rt>ごうぞく</rt></ruby>を<ruby>組織化<rt>そしきか</rt></ruby>し、<ruby>支配<rt>しはい</rt></ruby>を<ruby>確立<rt>かくりつ</rt></ruby>するための<ruby>重要<rt>じゅうよう</rt></ruby>な<ruby>仕組<rt>しく</rt></ruby>みでした。' },
+
+            { period: '飛鳥時代', question: '<ruby>聖徳太子<rt>しょうとくたいし</rt></ruby>が<ruby>制定<rt>せいてい</rt></ruby>した、<ruby>役人<rt>やくにん</rt></ruby>の<ruby>心構<rt>こころがま</rt></ruby>えを<ruby>示<rt>しめ</rt></ruby>したものは<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>大宝律令<rt>たいほうりつりょう</rt></ruby>', '<ruby>十七条<rt>じゅうしちじょう</rt></ruby>の<ruby>憲法<rt>けんぽう</rt></ruby>', '<ruby>改新<rt>かいしん</rt></ruby>の<ruby>詔<rt>みことのり</rt></ruby>', '<ruby>班田収授法<rt>はんでんしゅうじゅほう</rt></ruby>'], answer: 1, explanation: '<ruby>十七条<rt>じゅうしちじょう</rt></ruby>の<ruby>憲法<rt>けんぽう</rt></ruby>は、<ruby>役人<rt>やくにん</rt></ruby>たちの<ruby>道徳的<rt>どうとくてき</rt></ruby>な<ruby>規範<rt>きはん</rt></ruby>を<ruby>示<rt>しめ</rt></ruby>したもので、<ruby>和<rt>わ</rt></ruby>の<ruby>精神<rt>せいしん</rt></ruby>を<ruby>重<rt>おも</rt></ruby>んじています。' },
+            { period: '飛鳥時代', question: '645<ruby>年<rt>ねん</rt></ruby>、<ruby>中大兄皇子<rt>なかのおおえのおうじ</rt></ruby>と<ruby>中臣鎌足<rt>なかとみのかまたり</rt></ruby>が<ruby>蘇我氏<rt>そがし</rt></ruby>を<ruby>倒<rt>たお</rt></ruby>した<ruby>事件<rt>じけん</rt></ruby>を<ruby>何<rt>なに</rt></ruby>という？', options: ['<ruby>承久<rt>じょうきゅう</rt></ruby>の<ruby>乱<rt>らん</rt></ruby>', '<ruby>保元<rt>ほうげん</rt></ruby>の<ruby>乱<rt>らん</rt></ruby>', '<ruby>乙巳<rt>いっし</rt></ruby>の<ruby>変<rt>へん</rt></ruby>', '<ruby>壬申<rt>じんしん</rt></ruby>の<ruby>乱<rt>らん</rt></ruby>'], answer: 2, explanation: '<ruby>乙巳<rt>いっし</rt></ruby>の<ruby>変<rt>へん</rt></ruby>（<ruby>いっし<rt>いっし</rt></ruby>の<ruby>へん<rt>へん</rt></ruby>）をきっかけに、<ruby>大化<rt>たいか</rt></ruby>の<ruby>改新<rt>かいしん</rt></ruby>と<ruby>呼<rt>よ</rt></ruby>ばれる<ruby>政治改革<rt>せいじかいかく</rt></ruby>が<ruby>始<rt>はじ</rt></ruby>まりました。' },
+            { period: '飛鳥時代', question: '<ruby>聖徳太子<rt>しょうとくたいし</rt></ruby>が<ruby>小野妹子<rt>おののいもこ</rt></ruby>を<ruby>派遣<rt>はけん</rt></ruby>した、<ruby>中国<rt>ちゅうごく</rt></ruby>の<ruby>王朝<rt>おうちょう</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>秦<rt>しん</rt></ruby>', '<ruby>漢<rt>かん</rt></ruby>', '<ruby>隋<rt>ずい</rt></ruby>', '<ruby>唐<rt>とう</rt></ruby>'], answer: 2, explanation: '<ruby>聖徳太子<rt>しょうとくたいし</rt></ruby>は<ruby>隋<rt>ずい</rt></ruby>に<ruby>使者<rt>ししゃ</rt></ruby>を<ruby>送<rt>おく</rt></ruby>り、<ruby>進<rt>すす</rt></ruby>んだ<ruby>文化<rt>ぶんか</rt></ruby>や<ruby>制度<rt>せいど</rt></ruby>を<ruby>取<rt>と</rt></ruby>り<ruby>入<rt>い</rt></ruby>れようとしました。' },
+            { period: '飛鳥時代', question: '<ruby>聖徳太子<rt>しょうとくたいし</rt></ruby>が<ruby>開<rt>ひら</rt></ruby>いたとされ、<ruby>日本最古<rt>にほんさいこ</rt></ruby>の<ruby>木造建築<rt>もくぞうけんちく</rt></ruby>として<ruby>知<rt>し</rt></ruby>られる<ruby>寺院<rt>じいん</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>東大寺<rt>とうだいじ</rt></ruby>', '<ruby>法隆寺<rt>ほうりゅうじ</rt></ruby>', '<ruby>興福寺<rt>こうふくじ</rt></ruby>', '<ruby>清水寺<rt>きよみずでら</rt></ruby>'], answer: 1, explanation: '<ruby>法隆寺<rt>ほうりゅうじ</rt></ruby>は、<ruby>聖徳太子<rt>しょうとくたいし</rt></ruby>の<ruby>思想<rt>しそう</rt></ruby>を<ruby>伝<rt>つた</rt></ruby>える<ruby>重要<rt>じゅうよう</rt></ruby>な<ruby>仏教寺院<rt>ぶっきょうじいん</rt></ruby>です。' },
+            { period: '飛鳥時代', question: '<ruby>大化<rt>たいか</rt></ruby>の<ruby>改新<rt>かいしん</rt></ruby>の<ruby>際<rt>さい</rt></ruby>に<ruby>制定<rt>せいてい</rt></ruby>された、<ruby>土地<rt>とち</rt></ruby>や<ruby>民<rt>たみ</rt></ruby>を<ruby>国家<rt>こっか</rt></ruby>が<ruby>直接<rt>ちょくせつ</rt></ruby><ruby>支配<rt>しはい</rt></ruby>する<ruby>制度<rt>せいど</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>班田収授法<rt>はんでんしゅうじゅほう</rt></ruby>', '<ruby>墾田永年私財法<rt>こんでんえいねんしざいほう</rt></ruby>', '<ruby>御恩<rt>ごおん</rt></ruby>と<ruby>奉公<rt>ほうこう</rt></ruby>', '<ruby>荘園制度<rt>しょうえんせいど</rt></ruby>'], answer: 0, explanation: '<ruby>班田収授法<rt>はんでんしゅうじゅほう</rt></ruby>は、<ruby>土地<rt>とち</rt></ruby>と<ruby>人民<rt>じんみん</rt></ruby>を<ruby>国家<rt>こっか</rt></ruby>が<ruby>把握<rt>はあく</rt></ruby>するための<ruby>制度<rt>せいど</rt></ruby>でした。' },
+
+            { period: '奈良時代', question: '奈良時代に<ruby>都<rt>みやこ</rt></ruby>が<ruby>置<rt>お</rt></ruby>かれた<ruby>場所<rt>ばしょ</rt></ruby>はどこ？', options: ['<ruby>平安京<rt>へいあんきょう</rt></ruby>', '<ruby>平城京<rt>へいじょうきょう</rt></ruby>', '<ruby>藤原京<rt>ふじわらきょう</rt></ruby>', '<ruby>難波京<rt>なにわきょう</rt></ruby>'], answer: 1, explanation: '710<ruby>年<rt>ねん</rt></ruby>に<ruby>平城京<rt>へいじょうきょう</rt></ruby>（<ruby>へいじょうきょう<rt>へいじょうきょう</rt></ruby>）に<ruby>都<rt>みやこ</rt></ruby>が<ruby>移<rt>うつ</rt></ruby>され、<ruby>奈良時代<rt>ならじだい</rt></ruby>が<ruby>始<rt>はじ</rt></ruby>まりました。<ruby>唐<rt>とう</rt></ruby>の<ruby>都<rt>みやこ</rt></ruby>、<ruby>長安<rt>ちょうあん</rt></ruby>をモデルに<ruby>作<rt>つく</rt></ruby>られました。' },
+            { period: '奈良時代', question: '<ruby>聖武天皇<rt>しょうむてんのう</rt></ruby>が<ruby>国<rt>くに</rt></ruby>ごとに<ruby>建<rt>た</rt></ruby>てさせた、<ruby>僧<rt>そう</rt></ruby>が<ruby>修行<rt>しゅぎょう</rt></ruby>する<ruby>お寺<rt>てら</rt></ruby>は<ruby>何<rt>なに</rt></ruby>という？', options: ['<ruby>国分寺<rt>こくぶんじ</rt></ruby>', '<ruby>東大寺<rt>とうだいじ</rt></ruby>', '<ruby>法隆寺<rt>ほうりゅうじ</rt></ruby>', '<ruby>薬師寺<rt>やくしじ</rt></ruby>'], answer: 0, explanation: '<ruby>聖武天皇<rt>しょうむてんのう</rt></ruby>は<ruby>仏教<rt>ぶっきょう</rt></ruby>の<ruby>力<rt>ちから</rt></ruby>で<ruby>国<rt>くに</rt></ruby>を<ruby>守<rt>まも</rt></ruby>ろうとし、<ruby>国<rt>くに</rt></ruby>ごとに<ruby>国分寺<rt>こくぶんじ</rt></ruby>と<ruby>国分尼寺<rt>こくぶんにじ</rt></ruby>を<ruby>建<rt>た</rt></ruby>てさせました。' },
+            { period: '奈良時代', question: '<ruby>東大寺<rt>とうだいじ</rt></ruby>に<ruby>安置<rt>あんち</rt></ruby>されている、<ruby>奈良時代<rt>ならじだい</rt></ruby>を<ruby>代表<rt>だいひょう</rt></ruby>する<ruby>巨大<rt>きょだい</rt></ruby>な<ruby>仏像<rt>ぶつぞう</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>阿弥陀如来像<rt>あみだにょらいぞう</rt></ruby>', '<ruby>薬師如来像<rt>やくしにょらいぞう</rt></ruby>', '<ruby>大日如来像<rt>だいにちにょらいぞう</rt></ruby>', '<ruby>盧舎那仏像<rt>るしゃなぶつぞう</rt></ruby>'], answer: 3, explanation: '<ruby>東大寺<rt>とうだいじ</rt></ruby>の<ruby>大仏<rt>だいぶつ</rt></ruby>は、<ruby>聖武天皇<rt>しょうむてんのう</rt></ruby>の<ruby>発願<rt>ほつがん</rt></ruby>により、<ruby>国家<rt>こっか</rt></ruby>の<ruby>安泰<rt>あんたい</rt></ruby>を<ruby>願<rt>ねが</rt></ruby>って<ruby>造<rt>つく</rt></ruby>られました。' },
+            { period: '奈良時代', question: '奈良時代に<ruby>貧<rt>まず</rt></ruby>しい<ruby>人々<rt>ひとびと</rt></ruby>に<ruby>医療<rt>いりょう</rt></ruby>や<ruby>薬<rt>くすり</rt></ruby>を<ruby>与<rt>あた</rt></ruby>えた<ruby>僧侶<rt>そうりょ</rt></ruby>は<ruby>誰<rt>だれ</rt></ruby>？', options: ['<ruby>行基<rt>ぎょうき</rt></ruby>', '<ruby>鑑真<rt>がんじん</rt></ruby>', '<ruby>空海<rt>くうかい</rt></ruby>', '<ruby>最澄<rt>さいちょう</rt></ruby>'], answer: 0, explanation: '<ruby>行基<rt>ぎょうき</rt></ruby>は、<ruby>民衆<rt>みんしゅう</rt></ruby>のために<ruby>橋<rt>はし</rt></ruby>や<ruby>ため池<rt>いけ</rt></ruby>を<ruby>作<rt>つく</rt></ruby>るなど、<ruby>社会事業<rt>しゃかいじぎょう</rt></ruby>にも<ruby>貢献<rt>こうけん</rt></ruby>しました。' },
+            { period: '奈良時代', question: '奈良時代に<ruby>完成<rt>かんせい</rt></ruby>した、<ruby>各地<rt>かくち</rt></ruby>の<ruby>風土<rt>ふうど</rt></ruby>や<ruby>伝説<rt>でんせつ</rt></ruby>を<ruby>記録<rt>きろく</rt></ruby>した<ruby>地理書<rt>ちりしょ</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>日本書紀<rt>にほんしょき</rt></ruby>', '<ruby>古事記<rt>こじき</rt></ruby>', '<ruby>風土記<rt>ふどき</rt></ruby>', '<ruby>続日本紀<rt>しょくにほんぎ</rt></ruby>'], answer: 2, explanation: '<ruby>風土記<rt>ふどき</rt></ruby>は、<ruby>各国<rt>かっこく</rt></ruby>の<ruby>文化<rt>ぶんか</rt></ruby>や<ruby>特産品<rt>とくさんひん</rt></ruby>、<ruby>神話<rt>しんわ</rt></ruby>などを<ruby>記<rt>しる</rt></ruby>したものです。' },
+
+            { period: '平安時代', question: '<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>が<ruby>詠<rt>よ</rt></ruby>んだとされる「この<ruby>世<rt>よ</rt></ruby>をば わが<ruby>世<rt>よ</rt></ruby>とぞ<ruby>思<rt>おも</rt></ruby>ふ...」の<ruby>歌<rt>うた</rt></ruby>が<ruby>収<rt>おさ</rt></ruby>められている、<ruby>彼<rt>かれ</rt></ruby>の<ruby>自筆<rt>じひつ</rt></ruby>の<ruby>日記<rt>にっき</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>古今和歌集<rt>こきんわかしゅう</rt></ruby>', '<ruby>土佐日記<rt>とさにっき</rt></ruby>', '<ruby>蜻蛉日記<rt>かげろうにっき</rt></ruby>', '<ruby>御堂関白記<rt>みどうかんぱくき</rt></ruby>'], answer: 3, explanation: '<ruby>御堂関白記<rt>みどうかんぱくき</rt></ruby>（<ruby>みどうかんぱくき<rt>みどうかんぱくき</rt></ruby>）は、<ruby>藤原道長<rt>ふじわらのみちなが</rt></ruby>の<ruby>栄華<rt>えいが</rt></ruby>を<ruby>象徴<rt>しょうちょう</rt></ruby>する<ruby>日記<rt>にっき</rt></ruby>として<ruby>知<rt>し</rt></ruby>られています。' },
+            { period: '平安時代', question: '<ruby>紫式部<rt>むらさきしきぶ</rt></ruby>によって<ruby>書<rt>か</rt></ruby>かれた<ruby>長編物語<rt>ちょうへんものがたり</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>枕草子<rt>まくらのそうし</rt></ruby>', '<ruby>源氏物語<rt>げんじものがたり</rt></ruby>', '<ruby>竹取物語<rt>たけとりものがたり</rt></ruby>', '<ruby>伊勢物語<rt>いせものがたり</rt></ruby>'], answer: 1, explanation: '<ruby>源氏物語<rt>げんじものがたり</rt></ruby>は、<ruby>世界最古<rt>せかいさいこ</rt></ruby>の<ruby>長編小説<rt>ちょうへんしょうせつ</rt></ruby>とも<ruby>言<rt>い</rt></ruby>われ、<ruby>平安時代<rt>へいあんじだい</rt></ruby>の<ruby>貴族社会<rt>きぞくしゃかい</rt></ruby>を<ruby>鮮<rt>あざ</rt></ruby>やかに<ruby>描<rt>えが</rt></ruby>いています。' },
+            { period: '平安時代', question: '<ruby>桓武天皇<rt>かんむてんのう</rt></ruby>が<ruby>平安京<rt>へいあんきょう</rt></ruby>に<ruby>都<rt>みやこ</rt></ruby>を<ruby>移<rt>うつ</rt></ruby>した<ruby>主<rt>おも</rt></ruby>な<ruby>理由<rt>りゆう</rt></ruby>は？', options: ['<ruby>政治<rt>せいじ</rt></ruby>の<ruby>腐敗<rt>ふはい</rt></ruby>を<ruby>避<rt>さ</rt></ruby>けるため', '<ruby>大陸<rt>たいりく</rt></ruby>との<ruby>貿易<rt>ぼうえき</rt></ruby>のため', '<ruby>蝦夷征討<rt>えぞせいとう</rt></ruby>のため', '<ruby>寺院<rt>じいん</rt></ruby>の<ruby>影響力<rt>えいきょうりょく</rt></ruby>を<ruby>排除<rt>はいじょ</rt></ruby>するため'], answer: 3, explanation: '<ruby>平城京<rt>へいじょうきょう</rt></ruby>での<ruby>寺院勢力<rt>じいんせいりょく</rt></ruby>の<ruby>影響力<rt>えいきょうりょく</rt></ruby>が<ruby>強<rt>つよ</rt></ruby>すぎたため、<ruby>新<rt>あら</rt></ruby>たな<ruby>都<rt>みやこ</rt></ruby>を<ruby>築<rt>きず</rt></ruby>きました。' },
+            { period: '平安時代', question: '<ruby>平安時代<rt>へいあんじだい</rt></ruby><ruby>中期<rt>ちゅうき</rt></ruby>に<ruby>栄<rt>さか</rt></ruby>えた、<ruby>仮名文字<rt>かなもじ</rt></ruby>を<ruby>使<rt>つか</rt></ruby>い、<ruby>貴族<rt>きぞく</rt></ruby>の<ruby>生活<rt>せいかつ</rt></ruby>や<ruby>感情<rt>かんじょう</rt></ruby>を<ruby>表現<rt>ひょうげん</rt></ruby>した<ruby>文化<rt>ぶんか</rt></ruby>を<ruby>何<rt>なに</rt></ruby>と<ruby>呼<rt>よ</rt></ruby>ぶ？', options: ['<ruby>国風文化<rt>こくふうぶんか</rt></ruby>', '<ruby>貴族文化<rt>きぞくぶんか</rt></ruby>', '<ruby>武家文化<rt>ぶけぶんか</rt></ruby>', '<ruby>町人文化<rt>ちょうにんぶんか</rt></ruby>'], answer: 0, explanation: '<ruby>国風文化<rt>こくふうぶんか</rt></ruby>は、<ruby>日本独自<rt>にほんどくじ</rt></ruby>の<ruby>文化<rt>ぶんか</rt></ruby>が<ruby>花開<rt>はなひら</rt></ruby>いた<ruby>時代<rt>じだい</rt></ruby>であり、かな<ruby>文字<rt>もじ</rt></ruby>が<ruby>広<rt>ひろ</rt></ruby>く<ruby>使<rt>つか</rt></ruby>われるようになりました。' },
+            { period: '平安時代', question: '<ruby>清少納言<rt>せいしょうなごん</rt></ruby>によって<ruby>書<rt>か</rt></ruby>かれた、<ruby>宮中<rt>きゅうちゅう</rt></ruby>の<ruby>生活<rt>せいかつ</rt></ruby>や<ruby>自然<rt>しぜん</rt></ruby>、<ruby>個人的<rt>こじんてき</rt></ruby>な<ruby>感想<rt>かんそう</rt></ruby>を<ruby>綴<rt>つづ</rt></ruby>った<ruby>随筆<rt>ずいひつ</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>源氏物語<rt>げんじものがたり</rt></ruby>', '<ruby>土佐日記<rt>とさにっき</rt></ruby>', '<ruby>枕草子<rt>まくらのそうし</rt></ruby>', '<ruby>蜻蛉日記<rt>かげろうにっき</rt></ruby>'], answer: 2, explanation: '<ruby>枕草子<rt>まくらのそうし</rt></ruby>は、<ruby>清少納言<rt>せいしょうなごん</rt></ruby>の<ruby>鋭<rt>するど</rt></ruby>い<ruby>観察眼<rt>かんさつがん</rt></ruby>と<ruby>豊<rt>ゆた</rt></ruby>かな<ruby>感性<rt>かんせい</rt></ruby>が<ruby>光<rt>ひか</rt></ruby>る<ruby>作品<rt>さくひん</rt></ruby>です。' },
+
+            { period: '鎌倉時代', question: '1192<ruby>年<rt>ねん</rt></ruby>、<ruby>源頼朝<rt>みなもとのよりとも</rt></ruby>が<ruby>朝廷<rt>ちょうてい</rt></ruby>から<ruby>任命<rt>にんめい</rt></ruby>された<ruby>役職<rt>やくしょく</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>関白<rt>かんぱく</rt></ruby>', '<ruby>太政大臣<rt>だじょうだいじん</rt></ruby>', '<ruby>征夷大将軍<rt>せいいたいしょうぐん</rt></ruby>', '<ruby>摂政<rt>せっしょう</rt></ruby>'], answer: 2, explanation: '<ruby>征夷大将軍<rt>せいいたいしょうぐん</rt></ruby>に<ruby>任命<rt>にんめい</rt></ruby>されたことで、<ruby>源頼朝<rt>みなもとのよりとも</rt></ruby>は<ruby>武士<rt>ぶし</rt></ruby>の<ruby>頂点<rt>ちょうてん</rt></ruby>に<ruby>立<rt>た</rt></ruby>ち、<ruby>鎌倉幕府<rt>かまくらばくふ</rt></ruby>を<ruby>開<rt>ひら</rt></ruby>きました。' },
+            { period: '鎌倉時代', question: '<ruby>鎌倉幕府<rt>かまくらばくふ</rt></ruby>が<ruby>御家人<rt>ごけにん</rt></ruby>の<ruby>領地<rt>りょうち</rt></ruby>を<ruby>保障<rt>ほしょう</rt></ruby>し、<ruby>新<rt>あら</rt></ruby>たな<ruby>土地<rt>とち</rt></ruby>を<ruby>与<rt>あた</rt></ruby>える<ruby>代<rt>か</rt></ruby>わりに<ruby>負<rt>お</rt></ruby>わせた<ruby>義務<rt>ぎむ</rt></ruby>を<ruby>何<rt>なに</rt></ruby>という？', options: ['<ruby>参勤交代<rt>さんきんこうたい</rt></ruby>', '<ruby>御恩<rt>ごおん</rt></ruby>と<ruby>奉公<rt>ほうこう</rt></ruby>', '<ruby>楽市楽座<rt>らくいちらくざ</rt></ruby>', '<ruby>地租改正<rt>ちそかいせい</rt></ruby>'], answer: 1, explanation: '<ruby>御恩<rt>ごおん</rt></ruby>（<ruby>ごおん<rt>ごおん</rt></ruby>）と<ruby>奉公<rt>ほうこう</rt></ruby>（<ruby>ほうこう<rt>ほうこう</rt></ruby>）は、<ruby>将軍<rt>しょうぐん</rt></ruby>と<ruby>御家人<rt>ごけにん</rt></ruby>の<ruby>間<rt>あいだ</rt></ruby>の<ruby>主従関係<rt>しゅじゅうかんけい</rt></ruby>の<ruby>基本<rt>きほん</rt></ruby>となる<ruby>制度<rt>せいど</rt></ruby>でした。' },
+            { period: '鎌倉時代', question: '1221<ruby>年<rt>ねん</rt></ruby>、<ruby>後鳥羽上皇<rt>ごとばじょうこう</rt></ruby>が<ruby>鎌倉幕府<rt>かまくらばくふ</rt></ruby>を<ruby>倒<rt>たお</rt></ruby>そうとして<ruby>失敗<rt>しっぱい</rt></ruby>した<ruby>争乱<rt>そうらん</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>応仁<rt>おうにん</rt></ruby>の<ruby>乱<rt>らん</rt></ruby>', '<ruby>承久<rt>じょうきゅう</rt></ruby>の<ruby>乱<rt>らん</rt></ruby>', '<ruby>元弘<rt>げんこう</rt></ruby>の<ruby>乱<rt>らん</rt></ruby>', '<ruby>建武<rt>けんむ</rt></ruby>の<ruby>新政<rt>しんせい</rt></ruby>'], answer: 1, explanation: '<ruby>承久<rt>じょうきゅう</rt></ruby>の<ruby>乱<rt>らん</rt></ruby>（<ruby>じょうきゅう<rt>じょうきゅう</rt></ruby>の<ruby>へん<rt>へん</rt></ruby>）で<ruby>勝利<rt>しょうり</rt></ruby>した<ruby>幕府<rt>ばくふ</rt></ruby>は、<ruby>支配<rt>しはい</rt></ruby>をより<ruby>強固<rt>きょうこ</rt></ruby>にしました。' },
+            { period: '鎌倉時代', question: '<ruby>鎌倉時代<rt>かまくらじだい</rt></ruby>に<ruby>中国<rt>ちゅうごく</rt></ruby>から<ruby>伝<rt>つた</rt></ruby>わり、<ruby>武士<rt>ぶし</rt></ruby>の<ruby>間<rt>あいだ</rt></ruby>で<ruby>広<rt>ひろ</rt></ruby>まった<ruby>新<rt>あたら</rt></ruby>しい<ruby>仏教<rt>ぶっきょう</rt></ruby>の<ruby>宗派<rt>しゅうは</rt></ruby>は？', options: ['<ruby>浄土宗<rt>じょうどしゅう</rt></ruby>', '<ruby>浄土真宗<rt>じょうどしんしゅう</rt></ruby>', '<ruby>禅宗<rt>ぜんしゅう</rt></ruby>', '<ruby>日蓮宗<rt>にちれんしゅう</rt></ruby>'], answer: 2, explanation: '<ruby>禅宗<rt>ぜんしゅう</rt></ruby>は、<ruby>座禅<rt>ざぜん</rt></ruby>を<ruby>通<rt>とお</rt></ruby>して<ruby>精神統一<rt>せいしんとういつ</rt></ruby>を<ruby>図<rt>はか</rt></ruby>る<ruby>修行<rt>しゅぎょう</rt></ruby>が、<ruby>武士<rt>ぶし</rt></ruby>の<ruby>精神<rt>せいしん</rt></ruby>と<ruby>合致<rt>がっち</rt></ruby>しました。' },
+            { period: '鎌倉時代', question: '<ruby>鎌倉時代<rt>かまくらじだい</rt></ruby>に<ruby>成立<rt>せいりつ</rt></ruby>した、<ruby>武士<rt>ぶし</rt></ruby>のための<ruby>法律<rt>ほうりつ</rt></ruby>をまとめたものは<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>律令<rt>りつりょう</rt></ruby>', '<ruby>御成敗式目<rt>ごせいばいしきもく</rt></ruby>', '<ruby>荘園制<rt>しょうえんせい</rt></ruby>', '<ruby>大宝律令<rt>たいほうりつりょう</rt></ruby>'], answer: 1, explanation: '<ruby>御成敗式目<rt>ごせいばいしきもく</rt></ruby>（<ruby>ごせいばいしきもく<rt>ごせいばいしきもく</rt></ruby>）は、<ruby>武士<rt>ぶし</rt></ruby>の<ruby>慣習<rt>かんしゅう</rt></ruby>に<ruby>基<rt>もと</rt></ruby>づいて<ruby>作<rt>つく</rt></ruby>られた、<ruby>武家社会<rt>ぶけしゃかい</rt></ruby>の<ruby>基本<rt>きほん</rt></ruby>となる<ruby>法律<rt>ほうりつ</rt></ruby>でした。' },
+
+            { period: '室町時代', question: '<ruby>室町幕府<rt>むろまちばくふ</rt></ruby>の3<ruby>代将軍<rt>だいしょうぐん</rt></ruby>で、<ruby>金閣<rt>きんかく</rt></ruby>を<ruby>建<rt>た</rt></ruby>てた<ruby>人物<rt>じんぶつ</rt></ruby>は<ruby>誰<rt>だれ</rt></ruby>？', options: ['<ruby>足利尊氏<rt>あしかがたかうじ</rt></ruby>', '<ruby>足利義政<rt>あしかがよしまさ</rt></ruby>', '<ruby>足利義満<rt>あしかがよしみつ</rt></ruby>', '<ruby>足利義昭<rt>あしかがよしあき</rt></ruby>'], answer: 2, explanation: '<ruby>足利義満<rt>あしかがよしみつ</rt></ruby>（<ruby>あしかがよしみつ<rt>あしかがよしみつ</rt></ruby>）は<ruby>南北朝<rt>なんぼくちょう</rt></ruby>の<ruby>合一<rt>ごういつ</rt></ruby>を<ruby>成<rt>な</rt></ruby>し<ruby>遂<rt>と</rt></ruby>げ、<ruby>日明貿易<rt>にちみんぼうえき</rt></ruby>を<ruby>行<rt>おこな</rt></ruby>うなど、<ruby>幕府<rt>ばくふ</rt></ruby>の<ruby>最盛期<rt>さいせいき</rt></ruby>を<ruby>築<rt>きず</rt></ruby>きました。' },
+            { period: '室町時代', question: '8<ruby>代将軍<rt>だいしょうぐん</rt></ruby><ruby>足利義政<rt>あしかがよしまさ</rt></ruby>の<ruby>時代<rt>じだい</rt></ruby>に<ruby>栄<rt>さか</rt></ruby>えた、<ruby>簡素<rt>かんそ</rt></ruby>で<ruby>静<rt>しず</rt></ruby>かな<ruby>わび<rt>わび</rt></ruby>・<ruby>さび<rt>さび</rt></ruby>を<ruby>重<rt>おも</rt></ruby>んじる<ruby>文化<rt>ぶんか</rt></ruby>を<ruby>何<rt>なに</rt></ruby>という？', options: ['<ruby>北山文化<rt>きたやまぶんか</rt></ruby>', '<ruby>桃山文化<rt>ももやまぶんか</rt></ruby>', '<ruby>東山文化<rt>ひがしやまぶんか</rt></ruby>', '<ruby>元禄文化<rt>げんろくぶんか</rt></ruby>'], answer: 2, explanation: '<ruby>東山文化<rt>ひがしやまぶんか</rt></ruby>（<ruby>ひがしやまぶんか<rt>ひがしやまぶんか</rt></ruby>）を<ruby>代表<rt>だいひょう</rt></ruby>するのが<ruby>銀閣<rt>ぎんかく</rt></ruby>や<ruby>書院造<rt>しょいんづくり</rt></ruby>、<ruby>水墨画<rt>すいぼくが</rt></ruby>などです。' },
+            { period: '室町時代', question: '<ruby>室町時代<rt>むろまちじだい</rt></ruby>に、<ruby>幕府<rt>ばくふ</rt></ruby>の<ruby>権力<rt>けんりょく</rt></ruby>が<ruby>弱<rt>よわ</rt></ruby>まり、<ruby>各地<rt>かくち</rt></ruby>の<ruby>守護大名<rt>しゅごだいみょう</rt></ruby>が<ruby>勢力<rt>せいりょく</rt></ruby>を<ruby>拡大<rt>かくだい</rt></ruby>した<ruby>時代<rt>じだい</rt></ruby>は<ruby>何<rt>なに</rt></ruby>と<ruby>呼<rt>よ</rt></ruby>ばれる？', options: ['<ruby>戦国時代<rt>せんごくじだい</rt></ruby>', '<ruby>南北朝時代<rt>なんぼくちょうじだい</rt></ruby>', '<ruby>室町時代<rt>むろまちじだい</rt></ruby>', '<ruby>応仁<rt>おうにん</rt></ruby>の<ruby>乱<rt>らん</rt></ruby>'], answer: 1, explanation: '<ruby>南北朝時代<rt>なんぼくちょうじだい</rt></ruby>は、<ruby>朝廷<rt>ちょうてい</rt></ruby>が<ruby>二<rt>ふた</rt></ruby>つに<ruby>分<rt>わ</rt></ruby>かれて<ruby>争<rt>あらそ</rt></ruby>い、<ruby>各地<rt>かくち</rt></ruby>で<ruby>武士<rt>ぶし</rt></ruby>が<ruby>力<rt>ちから</rt></ruby>をつけました。' },
+            { period: '室町時代', question: '<ruby>室町時代<rt>むろまちじだい</rt></ruby>に<ruby>民衆<rt>みんしゅう</rt></ruby>の<ruby>間<rt>あいだ</rt></ruby>で<ruby>流行<rt>りゅうこう</rt></ruby>した、<ruby>数人<rt>すうにん</rt></ruby>で<ruby>集<rt>あつ</rt></ruby>まり<ruby>歌<rt>うた</rt></ruby>を<ruby>詠<rt>よ</rt></ruby>み<ruby>合<rt>あ</rt></ruby>う<ruby>文化<rt>ぶんか</rt></ruby>は？', options: ['<ruby>和歌<rt>わか</rt></ruby>', '<ruby>俳句<rt>はいく</rt></ruby>', '<ruby>連歌<rt>れんが</rt></ruby>', '<ruby>短歌<rt>たんか</rt></ruby>'], answer: 2, explanation: '<ruby>連歌<rt>れんが</rt></ruby>は、<ruby>複数<rt>ふくすう</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>が<ruby>上<rt>かみ</rt></ruby>の<ruby>句<rt>く</rt></ruby>と<ruby>下<rt>しも</rt></ruby>の<ruby>句<rt>く</rt></ruby>を<ruby>交互<rt>こうご</rt></ruby>に<ruby>詠<rt>よ</rt></ruby>みつなげていく<ruby>共同制作<rt>きょうどうせいさく</rt></ruby>の<ruby>詩歌<rt>しいか</rt></ruby>です。' },
+            { period: '室町時代', question: '<ruby>室町時代<rt>むろまちじだい</rt></ruby>に<ruby>発展<rt>はってん</rt></ruby>した、<ruby>能<rt>のう</rt></ruby>と<ruby>狂言<rt>きょうげん</rt></ruby>を<ruby>合<rt>あ</rt></ruby>わせた<ruby>伝統芸能<rt>でんとうげいのう</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>歌舞伎<rt>かぶき</rt></ruby>', '<ruby>文楽<rt>ぶんらく</rt></ruby>', '<ruby>浄瑠璃<rt>じょうるり</rt></ruby>', '<ruby>能楽<rt>のうがく</rt></ruby>'], answer: 3, explanation: '<ruby>能楽<rt>のうがく</rt></ruby>は、<ruby>観阿弥<rt>かんあみ</rt></ruby>・<ruby>世阿弥<rt>ぜあみ</rt></ruby><ruby>親子<rt>おやこ</rt></ruby>によって<ruby>大成<rt>たいせい</rt></ruby>され、<ruby>後<rt>のち</rt></ruby>の<ruby>芸能<rt>げいのう</rt></ruby>に<ruby>大<rt>おお</rt></ruby>きな<ruby>影響<rt>えいきょう</rt></ruby>を<ruby>与<rt>あた</rt></ruby>えました。' },
+
+            { period: '安土桃山時代', question: '<ruby>織田信長<rt>おだのぶなが</rt></ruby>が<ruby>鉄砲<rt>てっぽう</rt></ruby>を<ruby>効果的<rt>こうかてき</rt></ruby>に<ruby>用<rt>もち</rt></ruby>いて<ruby>武田軍<rt>たけだぐん</rt></ruby>を<ruby>破<rt>やぶ</rt></ruby>った<ruby>戦<rt>たたか</rt></ruby>いは<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>桶狭間<rt>おけはざま</rt></ruby>の<ruby>戦<rt>たたか</rt></ruby>い', '<ruby>長篠<rt>ながしの</rt></ruby>の<ruby>戦<rt>たたか</rt></ruby>い', '<ruby>関ヶ原<rt>せきがはら</rt></ruby>の<ruby>戦<rt>たたか</rt></ruby>い', '<ruby>姉川<rt>あねがわ</rt></ruby>の<ruby>戦<rt>たたか</rt></ruby>い'], answer: 1, explanation: '1575<ruby>年<rt>ねん</rt></ruby>の<ruby>長篠<rt>ながしの</rt></ruby>の<ruby>戦<rt>たたか</rt></ruby>いでは、<ruby>鉄砲隊<rt>てっぽうたい</rt></ruby>を<ruby>組織的<rt>そしきてき</rt></ruby>に<ruby>運用<rt>うんよう</rt></ruby>する<ruby>新<rt>あたら</rt></ruby>しい<ruby>戦術<rt>せんじゅつ</rt></ruby>が<ruby>用<rt>もち</rt></ruby>いられました。' },
+            { period: '安土桃山時代', question: '<ruby>豊臣秀吉<rt>とよとみひでよし</rt></ruby>が<ruby>全国統一<rt>ぜんこくとういつ</rt></ruby>の<ruby>総仕上<rt>そうしあ</rt></ruby>げとして<ruby>行<rt>おこな</rt></ruby>った<ruby>政策<rt>せいさく</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>刀狩<rt>かたながり</rt></ruby>', '<ruby>楽市<rt>らくいち</rt></ruby>・<ruby>楽座<rt>らくざ</rt></ruby>', '<ruby>検地<rt>けんち</rt></ruby>', '<ruby>兵農分離<rt>へいのうぶんり</rt></ruby>'], answer: 0, explanation: '<ruby>刀狩<rt>かたながり</rt></ruby>は、<ruby>農民<rt>のうみん</rt></ruby>から<ruby>武器<rt>ぶき</rt></ruby>を<ruby>取<rt>と</rt></ruby>り<ruby>上<rt>あ</rt></ruby>げることで<ruby>一揆<rt>いっき</rt></ruby>を<ruby>防<rt>ふせ</rt></ruby>ぎ、<ruby>兵農分離<rt>へいのうぶんり</rt></ruby>を<ruby>徹底<rt>てってい</rt></ruby>させる<ruby>目的<rt>もくてき</rt></ruby>がありました。' },
+            { period: '安土桃山時代', question: '<ruby>豊臣秀吉<rt>とよとみひでよし</rt></ruby>が<ruby>朝鮮<rt>ちょうせん</rt></ruby>に<ruby>出兵<rt>しゅっぺい</rt></ruby>した<ruby>二度<rt>にど</rt></ruby>の<ruby>戦<rt>たたか</rt></ruby>いを<ruby>何<rt>なん</rt></ruby>と<ruby>呼<rt>よ</rt></ruby>ぶ？', options: ['<ruby>文禄<rt>ぶんろく</rt></ruby>・<ruby>慶長<rt>けいちょう</rt></ruby>の<ruby>役<rt>えき</rt></ruby>', '<ruby>丁酉倭乱<rt>ていゆうわらん</rt></ruby>', '<ruby>壬辰倭乱<rt>じんしんわらん</rt></ruby>', '<ruby>朝鮮出兵<rt>ちょうせんしゅっぺい</rt></ruby>'], answer: 0, explanation: '<ruby>文禄<rt>ぶんろく</rt></ruby>・<ruby>慶長<rt>けいちょう</rt></ruby>の<ruby>役<rt>えき</rt></ruby>は、<ruby>秀吉<rt>ひでよし</rt></ruby>による<ruby>朝鮮侵略<rt>ちょうせんしんりゃく</rt></ruby>の<ruby>失敗<rt>しっぱい</rt></ruby>に<ruby>終<rt>お</rt></ruby>わりました。' },
+            { period: '安土桃山時代', question: '<ruby>千利休<rt>せんのりきゅう</rt></ruby>が<ruby>大成<rt>たいせい</rt></ruby>した、<ruby>簡素<rt>かんそ</rt></ruby>で<ruby>精神性<rt>せいしんせい</rt></ruby>を<ruby>重<rt>おも</rt></ruby>んじる<ruby>文化<rt>ぶんか</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>茶<rt>ちゃ</rt></ruby>の<ruby>湯<rt>ゆ</rt></ruby>', '<ruby>華道<rt>かどう</rt></ruby>', '<ruby>香道<rt>こうどう</rt></ruby>', '<ruby>生<rt>い</rt></ruby>け<ruby>花<rt>ばな</rt></ruby>'], answer: 0, explanation: '<ruby>千利休<rt>せんのりきゅう</rt></ruby>は「<ruby>わび茶<rt>わびちゃ</rt></ruby>」を<ruby>追求<rt>ついきゅう</rt></ruby>し、<ruby>精神的<rt>せいしんてき</rt></ruby>な<ruby>豊<rt>ゆた</rt></ruby>かさを<ruby>重<rt>おも</rt></ruby>んじました。' },
+            { period: '安土桃山時代', question: '<ruby>織田信長<rt>おだのぶなが</rt></ruby>が、<ruby>商工業<rt>しょうこうぎょう</rt></ruby>を<ruby>活発<rt>かっぱつ</rt></ruby>にするために<ruby>行<rt>おこな</rt></ruby>った<ruby>政策<rt>せいさく</rt></ruby>で、<ruby>座<rt>ざ</rt></ruby>を<ruby>廃止<rt>はいし</rt></ruby>し、<ruby>自由<rt>じゆう</rt></ruby>に<ruby>商売<rt>しょうばい</rt></ruby>をさせた<ruby>制度<rt>せいど</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>刀狩<rt>かたながり</rt></ruby>', '<ruby>楽市<rt>らくいち</rt></ruby>・<ruby>楽座<rt>らくざ</rt></ruby>', '<ruby>検地<rt>けんち</rt></ruby>', '<ruby>兵農分離<rt>へいのうぶんり</rt></ruby>'], answer: 1, explanation: '<ruby>楽市<rt>らくいち</rt></ruby>・<ruby>楽座<rt>らくざ</rt></ruby>は、<ruby>商業<rt>しょうぎょう</rt></ruby>の<ruby>自由化<rt>じゆうか</rt></ruby>を<ruby>促<rt>うなが</rt></ruby>し、<ruby>経済<rt>けいざい</rt></ruby>を<ruby>発展<rt>はってん</rt></ruby>させました。' },
+
+            { period: '江戸時代', question: '<ruby>江戸幕府<rt>えどばくふ</rt></ruby>の3<ruby>代将軍<rt>だいしょうぐん</rt></ruby>で、<ruby>参勤交代<rt>さんきんこうたい</rt></ruby>を<ruby>制度化<rt>せいどか</rt></ruby>したのは<ruby>誰<rt>だれ</rt></ruby>？', options: ['<ruby>徳川家康<rt>とくがわいえやす</rt></ruby>', '<ruby>徳川秀忠<rt>とくがわひでただ</rt></ruby>', '<ruby>徳川家光<rt>とくがわいえみつ</rt></ruby>', '<ruby>徳川吉宗<rt>とくがわよしむね</rt></ruby>'], answer: 2, explanation: '<ruby>徳川家光<rt>とくがわいえみつ</rt></ruby>（<ruby>とくがわいえみつ<rt>とくがわいえみつ</rt></ruby>）は<ruby>参勤交代<rt>さんきんこうたい</rt></ruby>や<ruby>鎖国<rt>さこく</rt></ruby>を<ruby>完成<rt>かんせい</rt></ruby>させ、<ruby>幕府<rt>ばくふ</rt></ruby>の<ruby>支配体制<rt>しはいたいせい</rt></ruby>を<ruby>固<rt>かた</rt></ruby>めました。' },
+            { period: '江戸時代', question: '<ruby>浮世絵<rt>うきよえ</rt></ruby>の「<ruby>富嶽三十六景<rt>ふがくさんじゅうろっけい</rt></ruby>」で<ruby>知<rt>し</rt></ruby>られる<ruby>江戸時代<rt>えどじだい</rt></ruby>の<ruby>絵師<rt>えし</rt></ruby>は<ruby>誰<rt>だれ</rt></ruby>？', options: ['<ruby>喜多川歌麿<rt>きたがわうたまろ</rt></ruby>', '<ruby>東洲斎写楽<rt>とうしゅうさいしゃらく</rt></ruby>', '<ruby>葛飾北斎<rt>かつしかほくさい</rt></ruby>', '<ruby>歌川広重<rt>うたがわひろしげ</rt></ruby>'], answer: 2, explanation: '<ruby>葛飾北斎<rt>かつしかほくさい</rt></ruby>（<ruby>かつしかほくさい<rt>かつしかほくさい</rt></ruby>）は、<ruby>大胆<rt>だいたん</rt></ruby>な<ruby>構図<rt>こうず</rt></ruby>と<ruby>鮮<rt>あざ</rt></ruby>やかな<ruby>色彩<rt>しきさい</rt></ruby>で<ruby>富士山<rt>ふじさん</rt></ruby>を<ruby>描<rt>えが</rt></ruby>き、<ruby>世界的<rt>せかいてき</rt></ruby>に<ruby>有名<rt>ゆうめい</rt></ruby>な<ruby>作品<rt>さくひん</rt></ruby>となりました。' },
+            { period: '江戸時代', question: '<ruby>江戸時代<rt>えどじだい</rt></ruby>に、<ruby>身分制度<rt>みぶんせいど</rt></ruby>の<ruby>頂点<rt>ちょうてん</rt></ruby>に<ruby>立<rt>た</rt></ruby>ち、<ruby>武士<rt>ぶし</rt></ruby><ruby>以外<rt>いがい</rt></ruby>の<ruby>農民<rt>のうみん</rt></ruby>・<ruby>職人<rt>しょくにん</rt></ruby>・<ruby>商人<rt>しょうにん</rt></ruby>からなる<ruby>身分<rt>みぶん</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>士農工商<rt>しのうこうしょう</rt></ruby>', '<ruby>穢多非人<rt>えたひにん</rt></ruby>', '<ruby>武士<rt>ぶし</rt></ruby>', '<ruby>貴族<rt>きぞく</rt></ruby>'], answer: 0, explanation: '<ruby>士農工商<rt>しのうこうしょう</rt></ruby>は、<ruby>江戸時代<rt>えどじだい</rt></ruby>の<ruby>身分制度<rt>みぶんせいど</rt></ruby>を<ruby>表<rt>あらわ</rt></ruby>す<ruby>言葉<rt>ことば</rt></ruby>です。' },
+            { period: '江戸時代', question: '<ruby>江戸時代<rt>えどじだい</rt></ruby>に、<ruby>キリスト教<rt>キリストきょう</rt></ruby>の<ruby>禁止<rt>きんし</rt></ruby>と<ruby>貿易<rt>ぼうえき</rt></ruby>の<ruby>制限<rt>せいげん</rt></ruby>を<ruby>行<rt>おこな</rt></ruby>った<ruby>政策<rt>せいさく</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>大化<rt>たいか</rt></ruby>の<ruby>改新<rt>かいしん</rt></ruby>', '<ruby>鎖国<rt>さこく</rt></ruby>', '<ruby>参勤交代<rt>さんきんこうたい</rt></ruby>', '<ruby>藩制<rt>はんせい</rt></ruby>'], answer: 1, explanation: '<ruby>鎖国<rt>さこく</rt></ruby>により、<ruby>日本<rt>にほん</rt></ruby>は<ruby>海外<rt>かいがい</rt></ruby>との<ruby>交流<rt>こうりゅう</rt></ruby>を<ruby>厳<rt>きび</rt></ruby>しく<ruby>制限<rt>せいげん</rt></ruby>しました。' },
+            { period: '江戸時代', question: '<ruby>江戸時代<rt>えどじだい</rt></ruby>に、<ruby>武士<rt>ぶし</rt></ruby>や<ruby>富裕<rt>ふゆう</rt></ruby>な<ruby>町人<rt>ちょうにん</rt></ruby>の<ruby>間<rt>あいだ</rt></ruby>で<ruby>流行<rt>りゅうこう</rt></ruby>した、<ruby>浮世絵<rt>うきよえ</rt></ruby>や<ruby>歌舞伎<rt>かぶき</rt></ruby>などの<ruby>文化<rt>ぶんか</rt></ruby>を<ruby>何<rt>なに</rt></ruby>と<ruby>呼<rt>よ</rt></ruby>ぶ？', options: ['<ruby>国風文化<rt>こくふうぶんか</rt></ruby>', '<ruby>東山文化<rt>ひがしやまぶんか</rt></ruby>', '<ruby>元禄文化<rt>げんろくぶんか</rt></ruby>', '<ruby>化政文化<rt>かせいぶんか</rt></ruby>'], answer: 2, explanation: '<ruby>元禄文化<rt>げんろくぶんか</rt></ruby>は、<ruby>元禄時代<rt>げんろくじだい</rt></ruby>を<ruby>中心<rt>ちゅうしん</rt></ruby>に<ruby>栄<rt>さか</rt></ruby>えた、<ruby>上方<rt>かみがた</rt></ruby>（<ruby>上方<rt>かみがた</rt></ruby>）を<ruby>中心<rt>ちゅうしん</rt></ruby>とする<ruby>町人文化<rt>ちょうにんぶんか</rt></ruby>です。<ruby>化政文化<rt>かせいぶんか</rt></ruby>は<ruby>江戸<rt>えど</rt></ruby><ruby>中心<rt>ちゅうしん</rt></ruby>。' },
+            { period: '江戸時代', question: '<ruby>江戸時代<rt>えどじだい</rt></ruby>に<ruby>徳川吉宗<rt>とくがわよしむね</rt></ruby>が<ruby>行<rt>おこな</rt></ruby>った、<ruby>幕府<rt>ばくふ</rt></ruby>の<ruby>財政<rt>ざいせい</rt></ruby>を<ruby>立<rt>た</rt></ruby>て<ruby>直<rt>なお</rt></ruby>すための<ruby>改革<rt>かいかく</rt></ruby>は<ruby>何<rt>なに</rt></ruby>？', options: ['<ruby>寛政<rt>かんせい</rt></ruby>の<ruby>改革<rt>かいかく</rt></ruby>', '<ruby>享保<rt>きょうほう</rt></ruby>の<ruby>改革<rt>かいかく</rt></ruby>', '<ruby>天保<rt>てんぽう</rt></ruby>の<ruby>改革<rt>かいかく</rt></ruby>', '<ruby>明治維新<rt>めいじいしん</rt></ruby>'], answer: 1, explanation: '<ruby>享保<rt>きょうほう</rt></ruby>の<ruby>改革<rt>かいかく</rt></ruby>は、<ruby>徳川吉宗<rt>とくがわよしむね</rt></ruby>が<ruby>財政再建<rt>ざいせいさいけん</rt></ruby>や<ruby>綱紀粛正<rt>こうきしゅくせい</rt></ruby>を<ruby>目指<rt>めざ</rt></ruby>した<ruby>改革<rt>かいかく</rt></ruby>です。' }
+        ];
+
+        const appContent = document.getElementById('app-content');
+        let currentQuiz = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let resultsChart = null;
+
+        function getPeriods() {
+            const periods = [...new Set(quizData.map(q => q.period))];
+            return periods;
+        }
+
+        function renderLobby() {
+            const periods = getPeriods();
+            appContent.innerHTML = `
+                <!-- div class="text-center mb-10">
+                    <p class="text-lg">
+                        挑戦したい時代を選んでね。総合クイズは、すべての時代から出題されるよ。<br>
+                        <img src="./img/japan-history.png" alt="Japan History." style="width: 100vw; height: auto;">
+                    </p>  
+                </div -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    ${periods.map(period => `
+                        <div class="period-card bg-secondary p-6 rounded-lg text-center cursor-pointer shadow-sm border border-transparent hover:border-accent" onclick="startQuiz('${period}')">
+                            <h2 class="text-2xl font-bold">${period}</h2>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="text-center">
+                    <button class="button-primary font-bold py-3 px-8 rounded-lg text-lg" onclick="startQuiz('all')">
+                        総合クイズに挑戦
+                    </button>
+                </div>
+            `;
+        }
+
+        function startQuiz(period) {
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            if (period === 'all') {
+                currentQuiz = [...quizData].sort(() => 0.5 - Math.random()).slice(0, 10); // 総合クイズは引き続き10問
+            } else {
+                currentQuiz = quizData.filter(q => q.period === period);
+            }
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            if (currentQuestionIndex >= currentQuiz.length) {
+                renderResults();
+                return;
+            }
+
+            const questionData = currentQuiz[currentQuestionIndex];
+            appContent.innerHTML = `
+                <div class="bg-secondary p-6 md:p-8 rounded-lg shadow-md max-w-3xl mx-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-sm font-bold text-accent">${questionData.period}</div>
+                        <div class="text-sm font-bold text-gray-600">${currentQuestionIndex + 1} / ${currentQuiz.length}</div>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-bold mb-6 min-h-[6rem]">${questionData.question}</h2>
+                    <div id="options-container" class="grid grid-cols-1 gap-4">
+                        ${questionData.options.map((option, index) => `
+                            <button class="answer-btn button-secondary text-left w-full p-4 rounded-lg font-semibold text-md" onclick="selectAnswer(${index})">
+                                ${option}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="feedback-container" class="mt-6"></div>
+                </div>
+            `;
+        }
+
+        function selectAnswer(selectedIndex) {
+            const questionData = currentQuiz[currentQuestionIndex];
+            const isCorrect = selectedIndex === questionData.answer;
+
+            userAnswers.push({ questionData, selectedIndex, isCorrect });
+
+            if (isCorrect) {
+                score++;
+            }
+
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === questionData.answer) {
+                    btn.classList.add('correct');
+                } else if (index === selectedIndex) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            const feedbackContainer = document.getElementById('feedback-container');
+            feedbackContainer.innerHTML = `
+                <div class="p-4 rounded-lg ${isCorrect ? 'bg-green-100' : 'bg-red-100'}">
+                    <h3 class="font-bold ${isCorrect ? 'text-green-800' : 'text-red-800'}">${isCorrect ? '正解！' : '残念！'}</h3>
+                    <p class="text-sm mt-1 text-gray-700">${questionData.explanation}</p>
+                </div>
+            `;
+
+            // 解説をじっくり読めるように、表示時間を4秒に延長 (4000ms)
+            setTimeout(() => {
+                currentQuestionIndex++;
+                renderQuestion();
+            }, 4000);
+        }
+
+        function renderResults() {
+            const incorrectAnswers = userAnswers.filter(a => !a.isCorrect);
+
+            appContent.innerHTML = `
+                <div class="text-center bg-secondary p-6 md:p-8 rounded-lg shadow-md">
+                    <h2 class="text-3xl font-bold mb-2">クイズ終了！</h2>
+                    <p class="text-lg mb-6">あなたのスコアは...</p>
+                    <p class="text-6xl font-bold text-accent mb-8">${score} / ${currentQuiz.length}</p>
+                    
+                    <div class="chart-container mb-8">
+                        <canvas id="resultsChart"></canvas>
+                    </div>
+
+                    ${incorrectAnswers.length > 0 ? `
+                    <div class="mt-10 text-left max-w-2xl mx-auto">
+                        <h3 class="text-xl font-bold mb-4 text-center">間違えた問題の復習</h3>
+                        <ul class="space-y-4">
+                            ${incorrectAnswers.map(ans => `
+                                <li class="bg-primary p-4 rounded-lg border border-gray-200">
+                                    <p class="font-bold">${ans.questionData.question}</p>
+                                    <p class="text-sm mt-2">あなたの回答: <span class="text-red-600 font-semibold">${ans.questionData.options[ans.selectedIndex]}</span></p>
+                                    <p class="text-sm">正解: <span class="text-green-600 font-semibold">${ans.questionData.options[ans.questionData.answer]}</span></p>
+                                    <p class="text-sm mt-1 text-gray-700">解説: ${ans.questionData.explanation}</p>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    ` : `
+                    <p class="text-xl font-bold text-green-600 mt-8">全問正解です！おめでとうございます！</p>
+                    `}
+
+                    <div class="mt-10">
+                         <button class="button-primary font-bold py-3 px-8 rounded-lg text-lg" onclick="renderLobby()">
+                            別の時代に挑戦する
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            renderChart();
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('resultsChart').getContext('2d');
+            if (resultsChart) {
+                resultsChart.destroy();
+            }
+            resultsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['正解', '不正解'],
+                    datasets: [{
+                        data: [score, currentQuiz.length - score],
+                        backgroundColor: [
+                            '#34D399', // Green-400
+                            '#F87171'  // Red-400
+                        ],
+                        borderColor: '#FDFBF8',
+                        borderWidth: 4,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.label}: ${context.raw} 問`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initial render
+        document.addEventListener('DOMContentLoaded', renderLobby);
+    </script>
+</body>
+
+</html>
