@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英検４級勉強のための物語</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #005ab3;
+            border-bottom: 2px solid #005ab3;
+            padding-bottom: 10px;
+        }
+        p {
+            margin: 1em 0;
+        }
+        .story {
+            background-color: #eef5ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .story-english {
+            font-style: italic;
+            color: #444;
+        }
+        .word-card {
+            background: #fff8e1;
+            border: 1px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .word-english {
+            font-size: 2em;
+            font-weight: bold;
+            color: #d84315;
+            margin-bottom: 10px;
+        }
+        .word-japanese {
+            font-size: 1.2em;
+            color: #555;
+            min-height: 1.5em; /* 意味が表示されていなくても高さを確保 */
+        }
+        .quiz-question {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #00796b;
+        }
+        .quiz-choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s;
+            box-sizing: border-box;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        .btn-small {
+            padding: 10px;
+            font-size: 1em;
+            margin: 5px;
+            display: inline-block;
+            width: auto;
+        }
+        .navigation-buttons {
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+        .quiz-feedback {
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .feedback-correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .feedback-incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .quiz-score {
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container"></div>
+
+    <script>
+        // --- データ ---
+        const rawData = `
+■朝の場面
+I wake up early and get dressed quickly.
+I eat cereal with milk, toast, an egg, and drink some juice. I'm so hungry!
+●単語・熟語と意味
+wake up（起きる）
+get dressed（服を着る）
+breakfast（朝ごはん）
+milk / cereal / toast / egg / juice（牛乳、シリアル、トースト、卵、ジュース）
+hungry（おなかがすいて）
+
+■学校へ
+I take a bus to school.
+In the classroom, the teacher says, "Good morning!"
+We study English and math. I listen, read, write, and answer questions.
+●単語・熟語と意味
+take a bus（バスに乗る）
+school（学校）
+classroom / teacher / student / desk / chair（教室、先生、生徒、机、いす）
+study / listen / write / read / answer（勉強する、聞く、書く、読む、答える）
+English / math / science / music / art（英語、数学、理科、音楽、美術）
+
+■昼休み
+At lunch, I eat with my friends. We talk a lot.
+They are funny and kind.
+After lunch, we play soccer. I'm very happy.
+●単語・熟語と意味
+lunch（昼食）
+friend（友だち）
+talk（話す）
+happy / funny / kind / nice（うれしい、おもしろい、親切な、すてきな）
+play / soccer / tennis / basketball（遊ぶ、サッカー、テニス、バスケ）
+
+■放課後
+After school, I go shopping.
+I want new shoes.
+I try on two pairs: one is cheap, the other is expensive.
+I buy the new one.
+●単語・熟語と意味
+go shopping（買い物に行く）
+store / clothes / shoes / bag（店、服、くつ、かばん）
+buy / want / need / try on（買う、ほしい、必要、試着する）
+cheap / expensive / new / old（安い、高い、新しい、古い）
+
+■夕食
+For dinner, my host family cooks chicken and rice.
+It’s so delicious!
+I also eat a hamburger and salad.
+It’s my favorite meal.
+●単語・熟語と意味
+dinner / hamburger / salad / rice / chicken（夕食、ハンバーガー、サラダ、ごはん、チキン）
+cook / eat / delicious / favorite（料理する、食べる、おいしい、好きな）
+
+■夜のくつろぎ
+After dinner, I watch TV and listen to music.
+I finish my homework and write a diary.
+I'm very tired and sleepy.
+The room is quiet and clean.
+●単語・熟語と意味
+watch TV / use a smartphone / listen to music（テレビを見る、スマホを使う、音楽を聴く）
+homework / diary / letter / picture（宿題、日記、手紙、絵・写真）
+tired / sleepy / clean / quiet（疲れた、ねむい、きれいな、静かな）
+
+■おやすみ
+I say "Good night" to my host family, get into bed, and fall asleep.
+I have a happy dream about today!
+●単語・熟語と意味
+good night（おやすみ）
+bed / sleep / dream（ベッド、眠る、夢）
+
+■Tom's story.
+ある日、Tomは朝早く起きました。He wanted to visit his grandmother（彼はおばあちゃんを訪ねたかったのです）。Tomはwindowから外を見て、「今日もfast bikeに乗って行こう！」と考えました。
+On the way,彼はbreadを買い、swimしたいと思い川へ寄りました。でもbusyなため、すぐにofficeへ向かいました。
+職場でanswerを書くのが仕事です。Famousなお客様が来ると聞いて、上司に招待されました。午後はmathの話題で盛り上がり、みんなでhave a good timeできました。
+夜はtonightのパーティーのために、inviteされた友達とgo outしました。その後、彼は友達をtake homeし、自分もget homeしました。「More and more楽しくなってきた！」とTomは思いました。
+夜中、wakeしたときにtoothbrushで歯を磨き、「safeな一日だったな」と思いながら眠りにつきました。
+●単語・熟語と意味
+visit	訪問する
+swim	泳ぐ
+put	置く
+answer	答える
+send	送る
+forget	忘れる
+carry	運ぶ
+plane	飛行機
+math	数学
+now	今
+holiday	祝日
+farmer	農家
+window	窓
+bread	パン
+busy	忙しい
+famous	有名な
+fast	速い
+often	しばしば
+easily	簡単に
+still	今でも
+always	いつも
+ride	乗る
+cut	切る
+invite	招待する
+drop	落とす
+record	記録する
+sell	売る
+wake	目が覚める
+arrive	到着する
+pond	池
+hobby	趣味
+shoulder	肩
+toothbrush	歯ブラシ
+salt	塩
+dress	ドレス
+office	会社
+luck	運
+safe	安全な
+tonight	今夜
+sometime	いつか
+usual	いつもの
+strong	強い
+simple	単純な
+social	社会の
+like doing	～するのが好きだ
+want to be	～になりたい
+need to do	～する必要がある
+go home	帰宅する
+get home	帰宅する
+come home	帰宅する
+do one’s homework	宿題をする
+take A to B	AをBに連れていく
+look for	～を探す
+leave for	～に向かって出発する
+have a good time	楽しい時を過ごす
+wait for	～を待つ
+stay in	～に泊まる
+stay with	～のもとに泊まる
+get up	起きる
+have a cold	風邪をひいている
+take a bath	入浴する
+take a shower	シャワーを浴びる
+take a walk	散歩をする
+go out	外出する
+say goodbye to	～に別れのあいさつを言う
+more and more	どんどん、ますます
+        `;
+
+        // --- グローバル変数 ---
+        const gameContainer = document.getElementById('game-container');
+        let chapters = [];
+        let allWords = [];
+        let quizState = {};
+
+        // --- データ解析 ---
+        function parseData(data) {
+            const chapterBlocks = data.trim().split('■').filter(Boolean);
+            const parsedChapters = chapterBlocks.map(block => {
+                const [titlePart, wordsPart] = block.split('●単語・熟語と意味');
+                const titleAndStory = titlePart.trim().split('\n');
+                const title = titleAndStory.shift();
+                const story = titleAndStory.join('<br>');
+                
+                const words = wordsPart.trim().split('\n').flatMap(line => {
+                    // "word1 / word2 (meaning1, meaning2)" の形式を分解
+                    if (line.includes('/') && line.includes('（') && line.includes('）')) {
+                         const match = line.match(/(.*?)\s?（(.*?)）/);
+                        if (match) {
+                            const engs = match[1].split('/').map(w => w.trim());
+                            const japs = match[2].split('、').map(w => w.trim());
+                            if (engs.length === japs.length) {
+                                return engs.map((e, i) => ({ english: e, japanese: japs[i] }));
+                            }
+                        }
+                    }
+                    
+                    // "word (meaning)" または "word	meaning" の形式
+                    const parts = line.split(/[（\t]/);
+                    if (parts.length >= 2) {
+                        const english = parts[0].trim();
+                        const japanese = parts[1].replace('）', '').trim();
+                        if (english && japanese) {
+                            return { english, japanese };
+                        }
+                    }
+                    return [];
+                });
+
+                return { title, story, words };
+            });
+            chapters = parsedChapters;
+            allWords = chapters.flatMap(c => c.words);
+        }
+
+
+        // --- 画面描画関数 ---
+
+        function render(html) {
+            gameContainer.innerHTML = html;
+            window.scrollTo(0, 0);
+        }
+
+        function showHome() {
+            const html = `
+                <h1>英検４級勉強のための物語<br><small>A story for studying Eiken Grade 4.</small></h1>
+                <p>英検４級のために物語で簡単に単語または熟語を覚えられるゲームです！</p>
+                
+                <h3>◎ 覚え方について</h3>
+                <ul>
+                    <li>わかってない単語も、ストーリーから想像してみよう。</li>
+                    <li>何度も声に出すと覚えやすいよ。</li>
+                    <li>ストーリーは、自分や好きなキャラクター、好きな場所に置き換えてイメージすると覚えやすいよ。</li>
+                    <li>「覚えたかゲーム」で満点を目指そう!!</li>
+                </ul>
+
+                <h3>◎ ゲームの遊び方</h3>
+                <p>ゲームの最初に、章の進め方を以下から選択してください。</p>
+                
+                <div class="navigation-buttons">
+                    <button class="btn" onclick="startInOrder()">1. 章の順番で進む</button>
+                    <button class="btn btn-secondary" onclick="showChapterSelectScreen()">2. 章を指定する</button>
+                    <button class="btn btn-success" onclick="showQuizHome()">3. 覚えたかゲーム</button>
+                </div>
+            `;
+            render(html);
+        }
+
+        function showChapterMenu(chapterIndex) {
+            const chapter = chapters[chapterIndex];
+            const html = `
+                <h2>第${chapterIndex + 1}章: ${chapter.title}</h2>
+                <div class="navigation-buttons">
+                    <button class="btn" onclick="showStory(${chapterIndex})">1. ストーリーを読む</button>
+                    <button class="btn btn-secondary" onclick="showWordList(${chapterIndex})">2. 単語と意味を見る</button>
+                    <button class="btn btn-success" onclick="startQuiz('en-to-jp-single', ${chapterIndex})">3. 覚えたかゲーム (この章)</button>
+                    <button class="btn btn-warning" onclick="showHome()">6. 最初に戻る</button>
+                </div>
+            `;
+            render(html);
+        }
+
+        function showStory(chapterIndex) {
+            const chapter = chapters[chapterIndex];
+            const nextChapterExists = chapterIndex < chapters.length - 1;
+
+            const html = `
+                <h2>第${chapterIndex + 1}章: ${chapter.title}</h2>
+                <div class="story">
+                    <p class="story-english">${chapter.story}</p>
+                </div>
+                <div class="navigation-buttons">
+                    ${nextChapterExists ? `<button class="btn" onclick="showChapterMenu(${chapterIndex + 1})">次の章へ</button>` : ''}
+                    <button class="btn btn-secondary" onclick="showChapterMenu(${chapterIndex})">章を繰り返す</button>
+                    <button class="btn btn-warning" onclick="showHome()">最初に戻る</button>
+                </div>
+            `;
+            render(html);
+        }
+        
+        function showWordList(chapterIndex, wordIndex = 0) {
+            const chapter = chapters[chapterIndex];
+            const word = chapter.words[wordIndex];
+
+            const html = `
+                <h2>第${chapterIndex + 1}章: ${chapter.title} の単語 (${wordIndex + 1}/${chapter.words.length})</h2>
+                <div class="word-card">
+                    <div class="word-english" id="word-display">${word.english}</div>
+                    <div class="word-japanese" id="meaning-display"></div>
+                </div>
+
+                <div>
+                    <button class="btn btn-small" onclick="document.getElementById('word-display').innerText = '${word.english}'">単語</button>
+                    <button class="btn btn-small btn-success" onclick="speak('${word.english}')">発音</button>
+                    <button class="btn btn-small btn-secondary" onclick="document.getElementById('meaning-display').innerText = '${word.japanese}'">意味</button>
+                </div>
+                
+                <div class="navigation-buttons">
+                    ${wordIndex < chapter.words.length - 1 
+                        ? `<button class="btn" onclick="showWordList(${chapterIndex}, ${wordIndex + 1})">次へ</button>`
+                        : (chapterIndex < chapters.length - 1 ? `<button class="btn" onclick="showChapterMenu(${chapterIndex + 1})">次の章へ</button>` : '')
+                    }
+                    <button class="btn btn-warning" onclick="showHome()">最初に戻る</button>
+                </div>
+            `;
+             render(html);
+        }
+
+        function showChapterSelectScreen(isForGame = false, gameType = 'en-to-jp') {
+            let buttonsHtml = chapters.map((chapter, index) => 
+                `<button class="btn" onclick="${isForGame ? `startQuiz('${gameType}-single', ${index})` : `showChapterMenu(${index})`}">第${index + 1}章: ${chapter.title}</button>`
+            ).join('');
+
+            const html = `
+                <h2>章を選択してください</h2>
+                ${buttonsHtml}
+                <div class="navigation-buttons">
+                    <button class="btn btn-warning" onclick="${isForGame ? `showQuizHome()` : `showHome()`}">戻る</button>
+                </div>
+            `;
+            render(html);
+        }
+        
+        function showQuizHome() {
+            const html = `
+                <h2>覚えたかゲーム</h2>
+                <h3>英語 → 日本語</h3>
+                <button class="btn" onclick="startQuiz('en-to-jp-in-order')">1. 1章から順番に</button>
+                <button class="btn" onclick="showChapterSelectScreen(true, 'en-to-jp')">2. 章を選ぶ</button>
+                <button class="btn" onclick="startQuiz('en-to-jp-all')">3. 全体からランダム</button>
+
+                <h3 style="margin-top: 40px;">日本語 → 英語</h3>
+                <button class="btn btn-secondary" onclick="startQuiz('jp-to-en-in-order')">4. 1章から順番に</button>
+                <button class="btn btn-secondary" onclick="showChapterSelectScreen(true, 'jp-to-en')">5. 章を選ぶ</button>
+                <button class="btn btn-secondary" onclick="startQuiz('jp-to-en-all')">6. 全体からランダム</button>
+                
+                <div class="navigation-buttons">
+                     <button class="btn btn-warning" onclick="showHome()">最初に戻る</button>
+                </div>
+            `;
+            render(html);
+        }
+
+        // --- ゲームロジック ---
+
+        function startInOrder() {
+            showChapterMenu(0);
+        }
+        
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('お使いのブラウザは音声読み上げに対応していません。');
+            }
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startQuiz(mode, chapterIndex = 0) {
+            quizState = {
+                mode: mode,
+                type: mode.startsWith('en-to-jp') ? 'en-to-jp' : 'jp-to-en',
+                currentChapterIndex: chapterIndex,
+                correctCount: 0,
+                incorrectCount: 0,
+                questionedWords: []
+            };
+
+            let wordPool;
+            let title;
+
+            if (mode.endsWith('-in-order') || mode.endsWith('-single')) {
+                wordPool = [...chapters[chapterIndex].words];
+                title = `第${chapterIndex + 1}章: ${chapters[chapterIndex].title}`;
+            } else { // '-all'
+                wordPool = [...allWords];
+                title = "全範囲";
+            }
+            
+            quizState.wordPool = shuffleArray(wordPool);
+            quizState.title = title;
+            quizState.currentQuestionIndex = 0;
+
+            showNextQuestion();
+        }
+
+        function generateChoices(correctWord) {
+            const type = quizState.type;
+            const correctAnswer = (type === 'en-to-jp') ? correctWord.japanese : correctWord.english;
+
+            let choices = [correctAnswer];
+            let tempAllWords = shuffleArray([...allWords]);
+
+            for (let word of tempAllWords) {
+                if (choices.length >= 4) break;
+                const potentialChoice = (type === 'en-to-jp') ? word.japanese : word.english;
+                if (!choices.includes(potentialChoice)) {
+                    choices.push(potentialChoice);
+                }
+            }
+
+            return shuffleArray(choices);
+        }
+
+        function showNextQuestion() {
+            if (quizState.currentQuestionIndex >= quizState.wordPool.length) {
+                showQuizResult();
+                return;
+            }
+
+            const word = quizState.wordPool[quizState.currentQuestionIndex];
+            const choices = generateChoices(word);
+            quizState.questionedWords.push(word);
+
+            const questionText = (quizState.type === 'en-to-jp') ? word.english : word.japanese;
+
+            const html = `
+                <h2>${quizState.title} - 覚えたかゲーム</h2>
+                <div class="quiz-score">
+                    正解: ${quizState.correctCount} | 不正解: ${quizState.incorrectCount} | (${quizState.currentQuestionIndex + 1}/${quizState.wordPool.length})
+                </div>
+                <div class="quiz-question">${questionText}</div>
+                <div class="quiz-choices">
+                    ${choices.map(choice => `<button class="btn" onclick="checkAnswer('${btoa(unescape(encodeURIComponent(JSON.stringify(choice))))}', '${btoa(unescape(encodeURIComponent(JSON.stringify(word))))}')">${choice}</button>`).join('')}
+                </div>
+                <div id="feedback-area"></div>
+            `;
+            render(html);
+        }
+        
+        function checkAnswer(selectedChoiceB64, correctWordB64) {
+             const selectedChoice = JSON.parse(decodeURIComponent(escape(atob(selectedChoiceB64))));
+             const correctWord = JSON.parse(decodeURIComponent(escape(atob(correctWordB64))));
+
+            const correctAnswer = (quizState.type === 'en-to-jp') ? correctWord.japanese : correctWord.english;
+            const isCorrect = selectedChoice === correctAnswer;
+
+            let feedbackHtml;
+            if (isCorrect) {
+                quizState.correctCount++;
+                feedbackHtml = `<div class="quiz-feedback feedback-correct">正解！</div>`;
+            } else {
+                quizState.incorrectCount++;
+                feedbackHtml = `<div class="quiz-feedback feedback-incorrect">不正解... 正しくは 「${correctAnswer}」 です。</div>`;
+            }
+            
+            document.querySelector('.quiz-choices').style.display = 'none'; // 回答後は選択肢を隠す
+            document.getElementById('feedback-area').innerHTML = feedbackHtml;
+
+            quizState.currentQuestionIndex++;
+            setTimeout(showNextQuestion, 1500); // 1.5秒後に次の問題へ
+        }
+
+        function showQuizResult() {
+            const { correctCount, incorrectCount, wordPool, mode, currentChapterIndex } = quizState;
+            const total = wordPool.length;
+            const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+            
+            let navButtons = '';
+            
+            if (mode.endsWith('-single')) {
+                navButtons = `
+                    <button class="btn" onclick="startQuiz('${mode}', ${currentChapterIndex})">同じ章を繰り返し</button>
+                    ${currentChapterIndex < chapters.length - 1 ? `<button class="btn btn-success" onclick="startQuiz('${mode}', ${currentChapterIndex + 1})">次の章へ</button>` : ''}
+                    <button class="btn btn-secondary" onclick="showQuizHome()">覚えたかゲームトップ</button>
+                    <button class="btn btn-warning" onclick="showHome()">最初に戻る</button>
+                `;
+            } else if (mode.endsWith('-in-order')) {
+                 navButtons = `
+                    <button class="btn" onclick="startQuiz('${mode}', ${currentChapterIndex})">同じ章を繰り返し</button>
+                     ${currentChapterIndex < chapters.length - 1 ? `<button class="btn btn-success" onclick="startQuiz('${mode}', ${currentChapterIndex + 1})">次の章へ</button>` : ''}
+                    <button class="btn btn-secondary" onclick="showQuizHome()">覚えたかゲームトップ</button>
+                    <button class="btn btn-warning" onclick="showHome()">最初に戻る</button>
+                `;
+            } else { // all
+                 navButtons = `
+                    <button class="btn" onclick="startQuiz('${mode}')">全体を繰り返し</button>
+                    <button class="btn btn-secondary" onclick="showQuizHome()">覚えたかゲームトップ</button>
+                    <button class="btn btn-warning" onclick="showHome()">最初に戻る</button>
+                `;
+            }
+
+
+            const html = `
+                <h2>ゲーム終了！</h2>
+                <h3>${quizState.title}</h3>
+                <div class="quiz-score" style="font-size: 1.5em; padding: 20px;">
+                    <p>結果: ${total}問中 ${correctCount}問 正解！</p>
+                    <p>正解率: ${accuracy}%</p>
+                </div>
+                <div class="navigation-buttons">
+                    ${navButtons}
+                </div>
+            `;
+            render(html);
+        }
+
+        // --- 初期化 ---
+        function init() {
+            parseData(rawData);
+            showHome();
+        }
+
+        // ゲーム開始
+        window.onload = init;
+    </script>
+</body>
+</html>
