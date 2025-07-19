@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奈良時代を極めよう！ ストーリー＆クイズゲーム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background-color: #fcfaf2;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        h1, h2, h3 {
+            color: #6a4a3a;
+            border-bottom: 2px solid #e0d5c0;
+            padding-bottom: 10px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2em;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #a98976;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #8c6d5a;
+        }
+        .hidden {
+            display: none;
+        }
+
+        /* スタート画面 */
+        #start-screen ul {
+            background-color: #f7f3e8;
+            padding: 20px;
+            border-radius: 8px;
+            list-style-type: '🌱';
+            padding-left: 40px;
+        }
+        #story-links h3 {
+            margin-top: 30px;
+            font-size: 1.3em;
+        }
+        #story-links ul {
+            list-style: none;
+            padding: 0;
+        }
+        #story-links li {
+            background-color: #fcfaf2;
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-left: 5px solid #c8b5a6;
+        }
+        #story-links li:hover {
+            background-color: #e0d5c0;
+        }
+
+        /* ストーリー画面 */
+        #story-content {
+            background-color: #f7f3e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .story-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+        }
+        .keyword-box {
+            background: #fff;
+            border: 1px dashed #a98976;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        .keyword-box b {
+            color: #6a4a3a;
+        }
+
+        /* クイズ画面 */
+        #quiz-container {
+            margin-top: 20px;
+        }
+        #question {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background-color: #f7f3e8;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .choices button {
+            background-color: #fcfaf2;
+            color: #333;
+            border: 2px solid #e0d5c0;
+            font-weight: normal;
+            font-size: 1em;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .choices button:hover:not(:disabled) {
+            background-color: #e0d5c0;
+        }
+        .choices button:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .choices button.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .choices button.wrong {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        #feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1em;
+        }
+        #feedback h4 {
+            margin-top: 0;
+            color: #6a4a3a;
+        }
+        #feedback p {
+            margin-bottom: 0;
+        }
+        .hint {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        /* 結果画面 */
+        #score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #a98976;
+            text-align: center;
+        }
+        #result-message {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="start-screen">
+        <h1>奈良時代を極めよう！<br>ストーリー＆クイズゲーム</h1>
+        <h2>遊び方</h2>
+        <ul>
+            <li>大化の改新後、天皇や人々が理想国家を夢みて平城京へ都を移し、土地や仏教、文化などにまつわる出来事が展開。税や土地、外国交流、歌や仏像、諸国の人々…</li>
+            <li>「ストーリー」は、時代の順に沿ってるよ。歴史の流れを掴んじゃおう。</li>
+            <li>「ゲーム開始」ボタンか、下から好きなテーマを選んで開始してね。</li>
+            <li>それから「クイズ」に挑戦。</li>
+            <li>語呂合わせなどのヒントも暗記しちゃおう</li>
+        </ul>
+        <p style="font-size:0.8em; text-align:right;">参考：日本文教出版「中学社会 歴史的分野」と明治図書「最新歴史資料集」</p>
+        
+        <button id="start-game-btn">ゲーム開始</button>
+
+        <div id="story-links">
+            <h3>テーマを選んでストーリーを読む</h3>
+            <ul id="story-link-list"></ul>
+        </div>
+    </div>
+
+    <div id="story-screen" class="hidden">
+        <h2 id="story-title"></h2>
+        <div id="story-content"></div>
+        <button id="go-to-quiz-btn">クイズに挑戦する</button>
+        <button id="back-to-top-from-story-btn">最初に戻る</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <h2 id="quiz-header">クイズたいむ！</h2>
+        <div id="quiz-container">
+            <p id="question-number"></p>
+            <div id="question"></div>
+            <div id="choices" class="choices"></div>
+            <div id="feedback" class="hidden"></div>
+        </div>
+        <button id="next-question-btn" class="hidden">次の問題へ</button>
+        <button id="back-to-top-from-quiz-btn" class="hidden">最初に戻る</button>
+    </div>
+    
+    <div id="result-screen" class="hidden">
+        <h2>クイズ結果</h2>
+        <p id="result-message">お疲れ様でした！あなたのスコアは...</p>
+        <p id="score"></p>
+        <button id="retry-btn">もう一度挑戦する</button>
+    </div>
+
+</div>
+
+<script>
+// --- データ定義 ---
+
+const stories = [
+    {
+        title: "都を作る：平城京の誕生と律令国家",
+        content: `
+            <p>701年、唐の法律（律令）にならった<strong>大宝律令</strong>が完成し、日本は法律にもとづいて政治を行う「律令国家」としての仕組みを整えました。そして<strong>710年</strong>、元明天皇は都を藤原京から<strong>平城京</strong>へ移します。「<strong>な</strong>(7)ん<strong>と</strong>(10)大きな平城京」と覚えよう！</p>
+            <p>平城京は、当時の大国・唐の都である<strong>長安</strong>をモデルにした、碁盤の目のように整然と区画された壮大な都でした。この都を中心に、天皇による中央集権的な国家づくりが本格的に始まったのです。</p>
+            <div class="keyword-box">
+                <b>重要語句：</b> 大宝律令、710年、平城京、長安、元明天皇
+            </div>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Heijokyo_restored_model.jpg/640px-Heijokyo_restored_model.jpg" alt="平城京の模型" class="story-img">
+            <p style="font-size:0.8em; text-align:center;">（資料）平城京の復元模型。計画的な都市だったことがわかる。</p>
+        `
+    },
+    {
+        title: "人を集める：口分田と農民の重い負担",
+        content: `
+            <p>律令国家の基本となったのが<strong>班田収授法</strong>です。これは、6歳以上のすべての人々に性別に応じて<strong>口分田</strong>という田んぼを与え、その人が死んだら国に返すという制度でした。</p>
+            <p>しかし、田んぼが与えられる代わりに、農民には重い税が課せられました。収穫した稲の約3%を納める<strong>租（そ）</strong>、都で働くか布を納める<strong>庸（よう）</strong>、地方の特産物を納める<strong>調（ちょう）</strong>です。これらを「そ・よう・ちょう」と読みます。その他にも、地方の公共事業で働く<strong>雑徭（ぞうよう）</strong>や、九州の防衛にあたる<strong>防人（さきもり）</strong>などの兵役もあり、農民の暮らしは非常に苦しいものでした。</p>
+            <div class="keyword-box">
+                <b>重要語句：</b> 班田収授法、口分田、租・庸・調、雑徭、防人
+            </div>
+            <img src="https://i.imgur.com/u7y9b0g.png" alt="租庸調の図解" class="story-img">
+            <p style="font-size:0.8em; text-align:center;">（資料）租庸調の仕組み。様々な形で税を納める必要があった。</p>
+        `
+    },
+    {
+        title: "課税＆不満：墾田永年私財法と荘園",
+        content: `
+            <p>重い税負担から逃れるため、与えられた口分田を捨てて逃げ出す農民が増え、国の税収は不安定になりました。また、人口が増えて分け与える口分田も不足してきました。</p>
+            <p>そこで政府は、新しい田んぼを開墾した者には、その土地を一定期間（三世代）私有することを認める<strong>三世一身法</strong>（723年）を出しました。しかしこれでも開墾は進まなかったため、743年には、開墾した土地を永久に私有できる<strong>墾田永年私財法</strong>を出しました。「<strong>な</strong>(7)<strong>し</strong>(4)<strong>さ</strong>(3)ん、土地は永久にあなたのもの」と覚えよう！</p>
+            <p>この法律によって、貴族や寺社は広大な土地を私有するようになり、これが後の<strong>荘園</strong>の始まりとなりました。</p>
+            <div class="keyword-box">
+                <b>重要語句：</b> 三世一身法、墾田永年私財法、荘園
+            </div>
+        `
+    },
+    {
+        title: "仏教と外交１：聖武天皇と大仏造立",
+        content: `
+            <p>奈良時代は、疫病の流行や反乱など、社会不安が続きました。<strong>聖武天皇</strong>は、仏教の力で国を災いから守り、平和にしようと考えました。</p>
+            <p>そこで、全国に<strong>国分寺</strong>と<strong>国分尼寺</strong>を建てるよう命じました。そして、都である平城京には<strong>東大寺</strong>を建て、その中心に巨大な<strong>大仏（盧舎那仏）</strong>を造立したのです。これは、仏の偉大な力によって国中が平和になることを願った、国家的な大事業でした。</p>
+            <div class="keyword-box">
+                <b>重要語句：</b> 聖武天皇、国分寺・国分尼寺、東大寺、大仏
+            </div>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Todaiji_Daibutsuden_202111.jpg/640px-Todaiji_Daibutsuden_202111.jpg" alt="東大寺大仏殿" class="story-img">
+            <p style="font-size:0.8em; text-align:center;">（資料）現在の東大寺大仏殿。何度も再建されているが、その壮大さは今も変わらない。</p>
+        `
+    },
+    {
+        title: "仏教と外交２：遣唐使と国際交流",
+        content: `
+            <p>奈良時代も、唐の進んだ文化や制度を学ぶため、<strong>遣唐使</strong>が派遣され続けました。遣唐使は命がけの航海でしたが、多くの留学生や僧が唐に渡りました。</p>
+            <p>その中でも有名なのが、何度も遭難しながらも日本へ渡るという強い意志を貫き、ついに来日して仏教の正しい戒律を伝えた唐の僧・<strong>鑑真</strong>です。鑑真は<strong>唐招提寺</strong>を建て、日本の仏教の発展に大きく貢献しました。「<strong>がん</strong>ばって<strong>じん</strong>と来た鑑真」と覚えよう！</p>
+            <p>また、留学生の阿倍仲麻呂は、その才能を認められて唐の皇帝に仕えましたが、ついに日本に帰ることはできませんでした。</p>
+            <div class="keyword-box">
+                <b>重要語句：</b> 遣唐使、鑑真、唐招提寺、阿倍仲麻呂
+            </div>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Toshodaiji_kondo_2012.jpg/640px-Toshodaiji_kondo_2012.jpg" alt="唐招提寺金堂" class="story-img">
+            <p style="font-size:0.8em; text-align:center;">（資料）鑑真が建てた唐招提寺。天平文化の代表的な建築物。</p>
+        `
+    },
+    {
+        title: "文化が栄える：天平文化と万葉集",
+        content: `
+            <p>聖武天皇のころの文化は、元号の「天平」から<strong>天平文化</strong>と呼ばれます。遣唐使がもたらした唐の文化や仏教の影響を強く受けた、国際色豊かな文化です。</p>
+            <p>建築では東大寺や唐招提寺、宝物を納めた<strong>正倉院</strong>の<strong>校倉造</strong>が有名です。正倉院には、聖武天皇の愛用品のほか、唐や遠くはペルシャ（西アジア）からの輸入品も残されており、当時の国際交流の様子がうかがえます。</p>
+            <p>文学では、日本最古の歌集である<strong>『万葉集』</strong>が編まれました。天皇や貴族だけでなく、兵士である防人や農民の歌も収められています。特に<strong>山上憶良</strong>が詠んだ「貧窮問答歌」は、当時の農民の苦しい生活をリアルに描いています。また、国の成り立ちを記した歴史書<strong>『古事記』</strong>『日本書紀』や、地方の自然や産物、伝説をまとめた<strong>『風土記』</strong>もこの時代に作られました。</p>
+            <div class="keyword-box">
+                <b>重要語句：</b> 天平文化、正倉院、校倉造、万葉集、山上憶良、古事記、日本書紀、風土記
+            </div>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Shosoin_General_view_N.jpg/640px-Shosoin_General_view_N.jpg" alt="正倉院" class="story-img">
+            <p style="font-size:0.8em; text-align:center;">（資料）東大寺の正倉院。宝物を湿気から守るための工夫がされた校倉造が特徴。</p>
+        `
+    }
+];
+
+const quizzes = [
+    {
+        question: "710年に、唐の都「長安」にならってつくられた都はどこですか？",
+        choices: ["平城京", "藤原京", "平安京"],
+        answer: "平城京",
+        explanation: "正解！ 710年は「な(7)んと(10)大きな平城京」の語呂合わせで覚えましょう。平城京が奈良時代の中心でした。"
+    },
+    {
+        question: "701年に定められた、律令国家の基本となった法律は何ですか？",
+        choices: ["武家諸法度", "御成敗式目", "大宝律令"],
+        answer: "大宝律令",
+        explanation: "正解！ 大宝律令は唐の律令を参考にして作られ、日本の政治の仕組みを体系的に定めた重要な法律です。"
+    },
+    {
+        question: "6歳以上の男女に与えられ、死ぬと国に返すとされた田んぼを何といいますか？",
+        choices: ["荘園", "口分田", "寺田"],
+        answer: "口分田",
+        explanation: "正解！ この制度を班田収授法といいます。人々に土地を与え、そこから税を徴収するのが国の基本でした。"
+    },
+    {
+        question: "農民の税負担のうち、収穫した稲の約3%を納めるものを何といいますか？",
+        choices: ["庸", "調", "租"],
+        answer: "租",
+        explanation: "正解！ 「租（そ）」は米で納める基本的な税です。「しゅうかくの『そ』」と覚えると、庸や調との区別がつきやすいです。"
+    },
+    {
+        question: "開墾した土地を永久に私有できることを認めた、743年の法律は何ですか？",
+        choices: ["三世一身法", "墾田永年私財法", "班田収授法"],
+        answer: "墾田永年私財法",
+        explanation: "正解！ 「な(7)し(4)さ(3)んの土地」と年号を覚えるのも手です。この法律が荘園発達のきっかけになりました。"
+    },
+    {
+        question: "社会不安をしずめるため、国ごとに国分寺・国分尼寺を建てるよう命じた天皇はだれですか？",
+        choices: ["天武天皇", "聖武天皇", "桓武天皇"],
+        answer: "聖武天皇",
+        explanation: "正解！ 聖武天皇は仏教の力で国を守ろうとしました。「大仏建立は、しょうむずかしい（聖武）事業」と関連付けて覚えましょう。"
+    },
+    {
+        question: "聖武天皇が平城京に建立し、大仏があることで有名な寺院は何ですか？",
+        choices: ["法隆寺", "東大寺", "唐招提寺"],
+        answer: "東大寺",
+        explanation: "正解！ 東大寺は国分寺の中心（総国分寺）と位置づけられました。大仏造立は国家的な大プロジェクトでした。"
+    },
+    {
+        question: "聖武天皇のころに栄えた、唐の文化と仏教の影響が強い文化を何といいますか？",
+        choices: ["飛鳥文化", "白鳳文化", "天平文化"],
+        answer: "天平文化",
+        explanation: "正解！ 聖武天皇の時代の元号「天平」から名付けられています。国際色豊かで力強いのが特徴です。"
+    },
+    {
+        question: "東大寺にあり、聖武天皇の遺品や海外の宝物が納められている、校倉造の建物は何ですか？",
+        choices: ["正倉院", "金堂", "五重塔"],
+        answer: "正倉院",
+        explanation: "正解！ 校倉造（あぜくらづくり）という建築様式もセットで覚えましょう。シルクロードを通って来た宝物も収められています。"
+    },
+    {
+        question: "唐の進んだ文化や制度を日本に持ち帰るために、命がけで海を渡った使節を何といいますか？",
+        choices: ["遣隋使", "遣唐使", "勘合貿易"],
+        answer: "遣唐使",
+        explanation: "正解！ 奈良時代も引き続き遣唐使が派遣され、天平文化の発展に大きな影響を与えました。"
+    },
+    {
+        question: "何度も遭難しながらも来日し、日本に仏教の正しい戒律を伝えた唐の僧はだれですか？",
+        choices: ["玄奘", "鑑真", "最澄"],
+        answer: "鑑真",
+        explanation: "正解！ 鑑真は失明しながらも日本への渡航を果たしました。「がん（Ganjin）ばって、じん（Jin）と来た」と覚えるのも良いでしょう。彼が建てた唐招提寺も重要です。"
+    },
+    {
+        question: "天皇から農民まで、様々な身分の人々の歌が収められている日本最古の歌集は何ですか？",
+        choices: ["古今和歌集", "万葉集", "新古今和歌集"],
+        answer: "万葉集",
+        explanation: "正解！ 「万（よろず）の言の葉（ことのは）」、つまりたくさんの人々の言葉（歌）を集めたものです。"
+    },
+    {
+        question: "『万葉集』に収められている「貧窮問答歌」で、農民の苦しい生活を詠んだ歌人はだれですか？",
+        choices: ["柿本人麻呂", "山上憶良", "大伴家持"],
+        answer: "山上憶良",
+        explanation: "正解！ 山上憶良は国司として地方に赴任した経験から、農民の苦しさをよく理解していました。"
+    },
+    {
+        question: "国の成り立ちや神話などを記した、現存する日本最古の歴史書は何ですか？",
+        choices: ["日本書紀", "古事記", "風土記"],
+        answer: "古事記",
+        explanation: "正解！ 『古事記』は主に国内向けに書かれ、『日本書紀』は海外（中国）を意識して漢文で書かれた歴史書です。どちらも奈良時代に完成しました。"
+    },
+    {
+        question: "九州に置かれ、外交や防衛の重要な役割を担った役所は何ですか？",
+        choices: ["国府", "鎮守府", "大宰府"],
+        answer: "大宰府",
+        explanation: "正解！ 大宰府は「遠の朝廷（とおのみかど）」とも呼ばれ、大陸との玄関口として非常に重要な拠点でした。"
+    }
+];
+
+
+// --- DOM要素の取得 ---
+const startScreen = document.getElementById('start-screen');
+const storyScreen = document.getElementById('story-screen');
+const quizScreen = document.getElementById('quiz-screen');
+const resultScreen = document.getElementById('result-screen');
+
+const startGameBtn = document.getElementById('start-game-btn');
+const storyLinkList = document.getElementById('story-link-list');
+const storyTitle = document.getElementById('story-title');
+const storyContent = document.getElementById('story-content');
+const goToQuizBtn = document.getElementById('go-to-quiz-btn');
+const backToTopFromStoryBtn = document.getElementById('back-to-top-from-story-btn');
+
+const quizHeader = document.getElementById('quiz-header');
+const questionNumberEl = document.getElementById('question-number');
+const questionEl = document.getElementById('question');
+const choicesEl = document.getElementById('choices');
+const feedbackEl = document.getElementById('feedback');
+const nextQuestionBtn = document.getElementById('next-question-btn');
+const backToTopFromQuizBtn = document.getElementById('back-to-top-from-quiz-btn');
+
+const scoreEl = document.getElementById('score');
+const resultMessageEl = document.getElementById('result-message');
+const retryBtn = document.getElementById('retry-btn');
+
+
+// --- ゲームの状態管理 ---
+let currentStoryIndex = 0;
+let currentQuestionIndex = 0;
+let score = 0;
+
+// --- 関数の定義 ---
+
+// 画面切り替え
+function showScreen(screen) {
+    startScreen.classList.add('hidden');
+    storyScreen.classList.add('hidden');
+    quizScreen.classList.add('hidden');
+    resultScreen.classList.add('hidden');
+    screen.classList.remove('hidden');
+}
+
+// ストーリーの表示
+function renderStory(index) {
+    currentStoryIndex = index;
+    const story = stories[index];
+    storyTitle.textContent = story.title;
+    storyContent.innerHTML = story.content;
+    showScreen(storyScreen);
+}
+
+// クイズの開始
+function startQuiz() {
+    currentQuestionIndex = 0;
+    score = 0;
+    showScreen(quizScreen);
+    renderQuestion();
+}
+
+// 問題の表示
+function renderQuestion() {
+    feedbackEl.classList.add('hidden');
+    nextQuestionBtn.classList.add('hidden');
+    backToTopFromQuizBtn.classList.add('hidden');
+
+    const question = quizzes[currentQuestionIndex];
+    questionNumberEl.textContent = `第 ${currentQuestionIndex + 1} 問 / ${quizzes.length} 問`;
+    questionEl.textContent = question.question;
+    choicesEl.innerHTML = "";
+
+    question.choices.forEach(choice => {
+        const button = document.createElement('button');
+        button.textContent = choice;
+        button.onclick = () => checkAnswer(choice, question.answer);
+        choicesEl.appendChild(button);
+    });
+}
+
+// 回答のチェック
+function checkAnswer(selectedChoice, correctAnswer) {
+    const buttons = choicesEl.getElementsByTagName('button');
+    let isCorrect = selectedChoice === correctAnswer;
+
+    if (isCorrect) {
+        score++;
+    }
+
+    Array.from(buttons).forEach(button => {
+        button.disabled = true;
+        if (button.textContent === correctAnswer) {
+            button.classList.add('correct');
+        } else if (button.textContent === selectedChoice) {
+            button.classList.add('wrong');
+        }
+    });
+
+    const question = quizzes[currentQuestionIndex];
+    feedbackEl.innerHTML = `
+        <h4>${isCorrect ? "正解！" : "残念！"}</h4>
+        <p>正解は <strong>${correctAnswer}</strong> でした。</p>
+        <div class="hint">${question.explanation}</div>
+    `;
+    feedbackEl.classList.remove('hidden');
+    
+    if (currentQuestionIndex < quizzes.length - 1) {
+        nextQuestionBtn.classList.remove('hidden');
+    } else {
+        // 最後の問題の場合は結果表示ボタン
+        nextQuestionBtn.textContent = '結果を見る';
+        nextQuestionBtn.classList.remove('hidden');
+    }
+    backToTopFromQuizBtn.classList.remove('hidden');
+
+}
+
+// 次の問題へ
+function nextQuestion() {
+    if (currentQuestionIndex < quizzes.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+        nextQuestionBtn.textContent = '次の問題へ'; // テキストを元に戻す
+    } else {
+        showResult();
+    }
+}
+
+// 結果の表示
+function showResult() {
+    showScreen(resultScreen);
+    scoreEl.textContent = `${score} / ${quizzes.length} 問正解`;
+    
+    let message = "";
+    const percentage = (score / quizzes.length) * 100;
+    if (percentage === 100) {
+        message = "パーフェクト！君は奈良時代マスターだ！";
+    } else if (percentage >= 80) {
+        message = "素晴らしい！あと少しで完璧だね！";
+    } else if (percentage >= 50) {
+        message = "よく頑張ったね！もう一度ストーリーを読んでみよう！";
+    } else {
+        message = "おしい！まずはストーリーをじっくり読んで再挑戦しよう！";
+    }
+    resultMessageEl.textContent = message;
+}
+
+// ゲームのリセット・最初に戻る
+function resetGame() {
+    currentStoryIndex = 0;
+    currentQuestionIndex = 0;
+    score = 0;
+    nextQuestionBtn.textContent = '次の問題へ';
+    showScreen(startScreen);
+}
+
+// 初期化処理
+function init() {
+    // ストーリー選択リストの生成
+    stories.forEach((story, index) => {
+        const li = document.createElement('li');
+        li.textContent = story.title;
+        li.onclick = () => renderStory(index);
+        storyLinkList.appendChild(li);
+    });
+
+    // イベントリスナーの設定
+    startGameBtn.addEventListener('click', () => renderStory(0));
+    goToQuizBtn.addEventListener('click', startQuiz);
+    backToTopFromStoryBtn.addEventListener('click', resetGame);
+    nextQuestionBtn.addEventListener('click', nextQuestion);
+    backToTopFromQuizBtn.addEventListener('click', resetGame);
+    retryBtn.addEventListener('click', resetGame);
+}
+
+// ゲーム開始
+init();
+
+</script>
+</body>
+</html>
