@@ -1,0 +1,145 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* 上部に寄せる */
+    min-height: 100vh;
+    margin: 20px; /* 全体の余白 */
+    box-sizing: border-box;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+h1 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+p {
+    line-height: 1.6;
+}
+
+#game-setup, #game-area, #result-screen {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fcfcfc;
+}
+
+#game-setup div {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap; /* 小さい画面で折り返す */
+}
+
+#game-setup label {
+    margin-right: 10px;
+    font-weight: bold;
+    min-width: 120px;
+    text-align: left;
+}
+
+#game-setup input[type="number"],
+#game-setup select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex-grow: 1;
+    max-width: 150px;
+}
+
+#game-setup input[type="checkbox"] {
+    margin-left: 5px;
+    transform: scale(1.2);
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+#question-display {
+    font-size: 2em;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    color: #e67e22;
+}
+
+#word-input-area {
+    font-size: 2.5em;
+    letter-spacing: 2px;
+    min-height: 1.5em; /* 高さ確保 */
+    display: inline-block; /* text-align: center; を有効にするため */
+    border-bottom: 2px solid #aaa;
+    margin-bottom: 20px;
+    color: #34495e;
+}
+
+#typed-word {
+    color: #27ae60; /* 正しい文字は緑 */
+}
+
+#hint-display {
+    color: #e74c3c; /* ヒントは赤 */
+}
+
+#answer-input {
+    width: 0; /* 見えないようにする */
+    height: 0;
+    border: none;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    overflow: hidden; /* Android Chrome での自動ズーム防止 */
+    position: absolute; /* 要素を隠すがフォーカス可能にする */
+    left: -9999px; /* 画面外に配置 */
+}
+
+#feedback-message {
+    min-height: 1.5em; /* メッセージ表示のためのスペースを確保 */
+    color: #e74c3c;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#current-question-number {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #7f8c8d;
+}
+
+#result-screen p {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+#result-screen span {
+    font-weight: bold;
+    color: #2980b9;
+}
