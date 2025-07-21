@@ -29,6 +29,10 @@
                     <option value="pronunciation">発音</option>
                 </select>
             </div>
+            <div>
+                <label for="show-time-during-game">ゲーム中に時間表示をする？</label>
+                <input type="checkbox" id="show-time-during-game" checked>
+            </div>
             <button id="start-game-button">ゲームスタート！</button>
             <button id="view-questions-button">問題確認</button>
         </div>
@@ -36,6 +40,7 @@
         <!-- ゲームプレイ画面 -->
         <div id="game-area" style="display: none;">
             <p>問題 <span id="current-question-number"></span> / 100</p>
+            <p id="game-timer" style="display: none;">経過時間: <span id="time-elapsed">0分 0秒</span></p>
             <div id="question-display"></div>
             <div id="word-input-area">
                 <span id="typed-word"></span><span id="hint-display"></span>
@@ -55,7 +60,7 @@
             <p>〇 (間違えなかった数): <span id="correct-count"></span></p>
             <p>△ (ヒントを使った数): <span id="hint-count"></span></p>
             <p>かかった時間: <span id="time-taken"></span></p>
-            <button id="restart-button">もう一度遊ぶ</button>
+            <button id="back-to-setup-button">最初の画面へ</button>
         </div>
     </div>
 
