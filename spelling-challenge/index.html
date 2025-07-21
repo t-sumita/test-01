@@ -62,16 +62,21 @@
             <p>かかった時間: <span id="time-taken"></span></p>
             <button id="back-to-setup-button">最初の画面へ</button>
         </div>
-    </div>
 
-    <!-- 問題確認モーダル -->
-    <div id="question-modal-overlay" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <h3>全100問リスト</h3>
+        <!-- 問題表示画面 (非モーダル) -->
+        <div id="problem-list-screen" style="display: none;">
+            <h2>全100問リスト</h2>
+            <div class="problem-list-buttons-top">
+                <button id="start-game-from-list-top">ゲームスタート！</button>
+                <button id="back-to-setup-from-list-top">最初の画面へ</button>
+            </div>
             <div id="question-list-container">
                 <!-- ここに問題リストが動的に挿入されます -->
             </div>
-            <button id="close-modal-button">閉じる</button>
+            <div class="problem-list-buttons-bottom">
+                <button id="start-game-from-list-bottom">ゲームスタート！</button>
+                <button id="back-to-setup-from-list-bottom">最初の画面へ</button>
+            </div>
         </div>
     </div>
 
